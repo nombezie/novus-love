@@ -1,0 +1,2149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Nexus of Interaction | v72.0 Diagnostic Engine</title>
+<style>
+    :root {
+        --parchment:#fdf6e3; --ink:#2c3e50; --border:#463020;
+        --battery:#2ecc71; --safe:#2196f3; --meaning:#8e44ad; --realness:#e67e22;
+        --pA-bg:#e3f2fd; --pA-text:#1565c0;
+        --pB-bg:#f3e5f5; --pB-text:#7b1fa2;
+        --lvl-1:#f1c40f; --lvl-2:#e67e22; --lvl-3:#c0392b;
+    }
+
+    body{
+        font-family:'Segoe UI',Tahoma,sans-serif;
+        background:#050505;
+        color:var(--ink);
+        margin:0;
+        display:flex;
+        height:100vh;
+        overflow:hidden;
+    }
+    .workspace{
+        display:grid;
+        grid-template-columns:460px 1fr 460px;
+        width:100%;
+        height:100%;
+    }
+
+    .giver-emph{
+        box-shadow:0 0 18px 4px rgba(255,255,255,0.25) inset;
+        transition:0.3s;
+    }
+
+    .person-pane{
+        padding:20px;
+        display:flex;
+        flex-direction:column;
+        gap:8px;
+        border:6px double var(--border);
+        overflow-y:auto;
+        transition:0.3s;
+        position:relative;
+    }
+
+    .name-input{
+        width:100%;
+        border:1px solid #999;
+        border-radius:4px;
+        padding:3px 5px;
+        font-size:.75rem;
+        margin-top:4px;
+    }
+
+    .attach-wrap{
+        border:1px solid #ccc;
+        background:#ddd;
+        height:24px;
+        border-radius:12px;
+        overflow:hidden;
+        margin-top:5px;
+        position:relative;
+    }
+    .attach-fill{
+        height:100%;
+        transition:width .5s,background .4s;
+        width:50%;
+    }
+    .attach-label{
+        position:absolute;
+        width:100%;
+        text-align:center;
+        font-size:.7rem;
+        font-weight:900;
+        line-height:24px;
+        color:#000;
+        text-transform:uppercase;
+        pointer-events:none;
+    }
+
+    .meter-wrap{
+        border:1px solid #ccc;
+        background:#eee;
+        height:18px;
+        border-radius:10px;
+        overflow:hidden;
+        margin-top:4px;
+        position:relative;
+    }
+    .meter-fill{
+        height:100%;
+        transition:width .4s,background .3s;
+        width:50%;
+    }
+    .meter-label{
+        position:absolute;
+        width:100%;
+        text-align:center;
+        font-size:.6rem;
+        font-weight:700;
+        line-height:18px;
+        color:#000;
+        text-transform:uppercase;
+        pointer-events:none;
+    }
+
+    .graph-wrap{
+        height:200px;
+        background:#fff;
+        border-radius:12px;
+        border:1px solid var(--border);
+        position:relative;
+        overflow:hidden;
+    }
+    .radar-svg{
+        width:100%;
+        height:100%;
+        overflow:visible;
+    }
+    .radar-poly{
+        fill:rgba(33,150,243,.25);
+        stroke:#0d47a1;
+        stroke-width:3;
+        transition:all .4s;
+    }
+    .radar-ghost{
+        fill:rgba(255,255,255,.05);
+        stroke:#000;
+        stroke-dasharray:4;
+        stroke-width:1.5;
+        pointer-events:none;
+    }
+
+    .axis-label{
+        position:absolute;
+        font-size:.7rem;
+        font-weight:700;
+        text-transform:uppercase;
+        pointer-events:none;
+    }
+    .axis-top{top:4px;left:50%;transform:translateX(-50%);color:var(--battery);}
+    .axis-right{right:6px;top:50%;transform:translateY(-50%);color:var(--safe);}
+    .axis-bottom{bottom:4px;left:50%;transform:translateX(-50%);color:var(--meaning);}
+    .axis-left{left:6px;top:50%;transform:translateY(-50%);color:var(--realness);}
+
+    .diag-scroll{
+        height:110px;
+        overflow-y:auto;
+        background:rgba(255,255,255,.7);
+        border:1px solid #ccc;
+        padding:5px;
+        border-radius:6px;
+    }
+    .diag-row{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        margin-bottom:4px;
+        font-size:.7rem;
+        border-bottom:1px solid rgba(0,0,0,.05);
+    }
+    .lvl-group{
+        display:flex;
+        gap:4px;
+    }
+    .lvl-tile{
+        width:14px;
+        height:14px;
+        border:1px solid #ccc;
+        border-radius:2px;
+        cursor:pointer;
+        background:#f0f0f0;
+    }
+    .lvl-tile.active.t-1{background:var(--lvl-1);}
+    .lvl-tile.active.t-2{background:var(--lvl-2);}
+    .lvl-tile.active.t-3{background:var(--lvl-3);}
+
+    .indiv-log{
+        height:120px;
+        overflow-y:auto;
+        background:#000;
+        border:1px solid #444;
+        border-radius:8px;
+        padding:6px;
+        font-size:.65rem;
+    }
+    .indiv-log, .indiv-log *{
+        color:#fff !important;
+    }
+    .indiv-log .log-entry{
+        margin-bottom:10px;
+        border-bottom:1px solid #333;
+        padding-bottom:8px;
+        background:#0a0a0a;
+        border-radius:4px;
+        padding:8px;
+    }
+
+    .interaction-hub{
+        background:#111;
+        padding:20px;
+        overflow-y:auto;
+        color:#eee;
+        border-left:2px solid var(--border);
+        border-right:2px solid var(--border);
+    }
+    .hub-card{
+        background:#1a1a1a;
+        border-radius:10px;
+        padding:12px;
+        margin-bottom:12px;
+        border:1px solid #333;
+    }
+    .hub-card .label-sm{ color:#fff; }
+    .hub-title{
+        font-size:.8rem;
+        text-transform:uppercase;
+        color:#f39c12;
+        margin-bottom:8px;
+        font-weight:bold;
+        border-bottom:1px solid #333;
+    }
+
+    #narrative-container{
+        background:#0f0f0f;
+        border:1px solid #333;
+        border-radius:8px;
+        padding:10px;
+        font-size:.75rem;
+        color:#ccc;
+        margin-bottom:15px;
+    }
+    #narrative-title{
+        font-weight:bold;
+        font-size:.8rem;
+        margin-bottom:4px;
+        color:#f1c40f;
+        text-transform:uppercase;
+    }
+    #narrative-box{
+        font-style:italic;
+        min-height:40px;
+    }
+
+    #guidance-container{
+        background:#141414;
+        border:1px solid #444;
+        border-radius:8px;
+        padding:10px;
+        font-size:.75rem;
+        color:#ddd;
+        margin-bottom:15px;
+    }
+    #guidance-title{
+        font-weight:bold;
+        font-size:.8rem;
+        margin-bottom:4px;
+        color:#2ecc71;
+        text-transform:uppercase;
+    }
+    #guidance-giver,#guidance-receiver{
+        margin-top:4px;
+    }
+
+    .rel-bars{
+        margin-bottom:10px;
+        background:#141414;
+        border-radius:8px;
+        border:1px solid #333;
+        padding:10px;
+        font-size:.7rem;
+    }
+    .rel-bar-row{
+        margin-bottom:6px;
+    }
+    .rel-bar-label{
+        display:block;
+        margin-bottom:2px;
+    }
+    .rel-bar-track{
+        width:100%;
+        height:14px;
+        border-radius:7px;
+        background:#222;
+        overflow:hidden;
+    }
+    .rel-bar-fill{
+        height:100%;
+        width:50%;
+        background:#2ecc71;
+        transition:width .4s,background .3s;
+    }
+
+    .rel-status-wrap{
+        margin-top:8px;
+    }
+
+    .log-box{
+        font-family:'Consolas',monospace;
+        font-size:.65rem;
+        height:220px;
+        overflow-y:auto;
+        background:#000;
+        color:#fff;
+        padding:10px;
+        border:1px solid #444;
+        border-radius:8px;
+    }
+    .log-entry{
+        margin-bottom:15px;
+        border-bottom:1px solid #333;
+        padding-bottom:10px;
+        background:#0a0a0a;
+        border-radius:4px;
+        padding:10px;
+    }
+
+    .rec-tag{
+        display:inline-block;
+        padding:2px 6px;
+        border-radius:3px;
+        font-weight:bold;
+        font-size:.6rem;
+        margin:4px 4px 0 0;
+        text-transform:uppercase;
+    }
+    .rec-personal{background:var(--meaning);color:#fff;}
+    .rec-interpersonal{background:var(--battery);color:#000;}
+
+    .face{
+        width:45px;
+        height:45px;
+        border-radius:50%;
+        border:2px solid var(--ink);
+        background:#ffe0bd;
+        margin:0 auto;
+        position:relative;
+        transition:.3s;
+    }
+    .eye{
+        width:4px;
+        height:4px;
+        background:var(--ink);
+        border-radius:50%;
+        position:absolute;
+        top:15px;
+    }
+    .mouth{
+        width:20px;
+        height:8px;
+        border:2px solid var(--ink);
+        border-top:0;
+        position:absolute;
+        bottom:8px;
+        left:50%;
+        transform:translateX(-50%);
+        border-radius:0 0 10px 10px;
+        transition:.3s;
+    }
+    .sad .mouth{
+        height:4px;
+        border-radius:10px 10px 0 0;
+        border-bottom:0;
+        border-top:2px solid var(--ink);
+        bottom:8px;
+    }
+
+    select,button{
+        width:100%;
+        background:#2a2a2a;
+        color:#fff;
+        border:1px solid #444;
+        padding:6px;
+        font-size:.75rem;
+        border-radius:4px;
+        cursor:pointer;
+        margin-top:4px;
+    }
+    .execute-btn{
+        background:var(--battery)!important;
+        color:#000!important;
+        font-weight:bold;
+        border:none;
+        height:40px;
+        font-size:.9rem!important;
+        margin-top:15px;
+    }
+    .solo-btn{
+        background:var(--meaning)!important;
+        color:#fff!important;
+        font-weight:bold;
+        border:none;
+    }
+    .label-sm{
+        font-size:.65rem;
+        font-weight:bold;
+        color:#000;
+        text-transform:uppercase;
+        margin-top:6px;
+        display:block;
+    }
+
+    details{margin-top:6px;}
+    details summary{
+        cursor:pointer;
+        font-size:.7rem;
+        font-weight:bold;
+        color:#000;
+    }
+
+    .tooltip-bubble{
+        position:fixed;
+        background:#111;
+        color:#eee;
+        border:1px solid #555;
+        border-radius:6px;
+        padding:6px 8px;
+        font-size:.7rem;
+        max-width:220px;
+        pointer-events:none;
+        opacity:0;
+        transform:translate(-50%,-120%);
+        transition:opacity .15s ease-out;
+        z-index:9999;
+        box-shadow:0 4px 10px rgba(0,0,0,.5);
+    }
+
+    .effect-container{
+        position:absolute;
+        left:0;
+        right:0;
+        bottom:0;
+        top:0;
+        pointer-events:none;
+        overflow:visible;
+        z-index:5;
+    }
+    .effect-heart,.effect-broken{
+        position:absolute;
+        font-size:1.6rem;
+        opacity:0;
+        animation-duration:1.6s;
+        animation-timing-function:ease-out;
+    }
+    @keyframes riseUpFromBottom {
+        0%{
+            transform:translate(-50%, 40%);
+            opacity:0;
+        }
+        20%{
+            opacity:1;
+        }
+        100%{
+            transform:translate(-50%, -60%);
+            opacity:0;
+        }
+    }
+
+    #why-box{
+        background:#141414;
+        border-radius:8px;
+        border:1px solid #444;
+        padding:8px;
+        font-size:.7rem;
+        margin-top:10px;
+        min-height:40px;
+    }
+
+    #suggest-box{
+        background:#141414;
+        border-radius:8px;
+        border:1px solid #444;
+        padding:8px;
+        font-size:.7rem;
+        margin-top:10px;
+    }
+
+    .small-btn{
+        width:auto;
+        display:inline-block;
+        padding:4px 8px;
+        font-size:.7rem;
+        margin-right:6px;
+        margin-top:4px;
+    }
+</style>
+</head>
+<body>
+<div class="workspace">
+
+    <!-- PERSON A -->
+    <div id="p0" class="person-pane">
+        <h2 id="title0" style="margin:0;text-align:center;">Jack</h2>
+
+        <details open>
+            <summary>Profile</summary>
+
+            <label class="label-sm">Name</label>
+            <input id="name0" class="name-input" value="Jack" />
+
+            <label class="label-sm tip" data-tip="Overall character flavor; shapes how they tend to think and feel.">Personality Type</label>
+            <select id="mbti0"></select>
+
+            <label class="label-sm tip" data-tip="Attachment style: how this person bonds, protests, and protects themselves.">Attachment Style</label>
+            <select id="attachStyle0">
+                <option value="Neutral">Neutral</option>
+                <option value="Secure">Secure</option>
+                <option value="Anxious-Preoccupied">Anxious-Preoccupied</option>
+                <option value="Dismissive-Avoidant">Dismissive-Avoidant</option>
+                <option value="Fearful-Avoidant">Fearful-Avoidant</option>
+                <option value="Disorganized">Disorganized</option>
+                <option value="Earned Secure">Earned Secure</option>
+                <option value="Anxious-Avoidant Cycling">Anxious-Avoidant Cycling</option>
+                <option value="Preoccupied-Fearful Hybrid">Preoccupied-Fearful Hybrid</option>
+            </select>
+
+            <label class="label-sm tip" data-tip="How this person naturally gives love.">Preferred Love Language (Giving)</label>
+            <select id="loveGive0">
+                <option value="Words">Words of Affirmation</option>
+                <option value="Acts">Acts of Service</option>
+                <option value="Gifts">Gifts</option>
+                <option value="Time">Quality Time</option>
+                <option value="Touch">Physical Touch</option>
+            </select>
+
+            <label class="label-sm tip" data-tip="How this person best receives love.">Preferred Love Language (Receiving)</label>
+            <select id="loveReceive0">
+                <option value="Words">Words of Affirmation</option>
+                <option value="Acts">Acts of Service</option>
+                <option value="Gifts">Gifts</option>
+                <option value="Time">Quality Time</option>
+                <option value="Touch">Physical Touch</option>
+            </select>
+
+            <label class="label-sm tip" data-tip="How they tend to handle conflict.">Conflict Style</label>
+            <select id="conflictStyle0">
+                <option value="Soft">Soft Startup</option>
+                <option value="Criticism">Critical</option>
+                <option value="Defensive">Defensive</option>
+                <option value="Stonewalling">Stonewalling</option>
+                <option value="Contempt">Contemptuous</option>
+                <option value="Avoidant">Avoidant</option>
+                <option value="Repair-Oriented">Repair-Oriented</option>
+            </select>
+
+            <label class="label-sm">Mental Health Factors</label>
+            <div class="diag-scroll" id="diagBox0"></div>
+        </details>
+
+        <div class="face" id="face0">
+            <div class="eye" style="left:12px"></div>
+            <div class="eye" style="right:12px"></div>
+            <div class="mouth"></div>
+        </div>
+
+        <div class="graph-wrap">
+            <svg class="radar-svg" viewBox="0 0 200 200">
+                <circle cx="100" cy="100" r="70" fill="none" stroke="#eee" stroke-dasharray="2" />
+                <polygon class="radar-ghost" id="ghost0" points="" />
+                <polygon class="radar-poly" id="poly0" points="" />
+            </svg>
+            <div class="axis-label axis-top tip" data-tip="How much emotional fuel they have to show up.">Energy</div>
+            <div class="axis-label axis-right tip" data-tip="How protected and emotionally secure they feel.">Safety</div>
+            <div class="axis-label axis-bottom tip" data-tip="How purposeful and meaningful the relationship feels.">Meaning</div>
+            <div class="axis-label axis-left tip" data-tip="How honest and authentic they can be.">Authenticity</div>
+            <div class="effect-container" id="effects0"></div>
+        </div>
+
+        <span class="label-sm tip" data-tip="How secure this person feels with their partner.">Feeling Secure With Partner</span>
+        <div class="attach-wrap">
+            <div id="attachBar0" class="attach-fill"></div>
+            <div class="attach-label" id="attachText0">Neutral</div>
+        </div>
+
+        <span class="label-sm tip" data-tip="Deep, stable sense of worth.">Steady Self-Worth</span>
+        <div class="meter-wrap">
+            <div id="coreWorthBar0" class="meter-fill"></div>
+            <div class="meter-label" id="coreWorthText0">Core</div>
+        </div>
+
+        <span class="label-sm tip" data-tip="How easily they feel shame or rejection.">Sensitivity to Rejection</span>
+        <div class="meter-wrap">
+            <div id="fragileWorthBar0" class="meter-fill"></div>
+            <div class="meter-label" id="fragileWorthText0">Sensitive</div>
+        </div>
+
+        <span class="label-sm tip" data-tip="Who they think they should be.">Self-Expectations</span>
+        <div class="meter-wrap">
+            <div id="idealSelfBar0" class="meter-fill"></div>
+            <div class="meter-label" id="idealSelfText0">Ideal</div>
+        </div>
+
+        <span class="label-sm tip" data-tip="Hope and belief in the future.">Hope For The Future</span>
+        <div class="meter-wrap">
+            <div id="futureOutlookBar0" class="meter-fill"></div>
+            <div class="meter-label" id="futureOutlookText0">Outlook</div>
+        </div>
+
+        <span class="label-sm tip" data-tip="How easily they can calm and steady themselves.">Emotion Regulation Skill</span>
+        <div class="meter-wrap">
+            <div id="regBar0" class="meter-fill"></div>
+            <div class="meter-label" id="regText0">Reg</div>
+        </div>
+
+        <span class="label-sm tip" data-tip="How much they currently trust their partner.">Trust in Partner</span>
+        <div class="meter-wrap">
+            <div id="trustBar0" class="meter-fill"></div>
+            <div class="meter-label" id="trustText0">Trust</div>
+        </div>
+
+        <span class="label-sm tip" data-tip="How much outside stress they are carrying.">External Stress Load</span>
+        <div class="meter-wrap">
+            <div id="stressBar0" class="meter-fill"></div>
+            <div class="meter-label" id="stressText0">Stress</div>
+        </div>
+
+        <label class="label-sm tip" data-tip="Solo practices that shift inner state without direct interaction.">Personal Resilience Practice</label>
+        <select id="solo-action0" class="tip" data-tip="Solo practices that shift inner state without direct interaction.">
+            <option value="15,10,10,15">Deep Meditation</option>
+            <option value="25,0,0,10">Restorative Sleep</option>
+            <option value="0,0,40,40">Processing Shadow</option>
+            <option value="10,20,0,10">Grounding Breathwork</option>
+            <option value="5,5,25,15">Journaling Insight</option>
+            <option value="8,12,15,10">Therapy Session</option>
+            <option value="12,5,5,8">Exercise/Movement</option>
+        </select>
+        <button class="solo-btn" onclick="app.commitSolo(0)">Run Solo Practice</button>
+
+        <label class="label-sm tip" data-tip="Notes about this person over time.">Individual Notes</label>
+        <div id="indivLog0" class="indiv-log"></div>
+    </div>
+
+    <!-- HUB -->
+    <div class="interaction-hub">
+
+        <div id="guidance-container">
+            <div id="guidance-title">Relational Guidance</div>
+            <div id="guidance-giver">Guidance for the giver will appear here after each interaction.</div>
+            <div id="guidance-receiver" style="margin-top:6px;">Guidance for the receiver will appear here after each interaction.</div>
+        </div>
+
+        <div class="rel-bars">
+            <div class="hub-title" style="border:none;margin-bottom:6px;">Relationship Snapshot</div>
+
+            <div class="rel-bar-row">
+                <span class="rel-bar-label">Overall Relationship Health</span>
+                <div class="rel-bar-track"><div id="relHealthBar" class="rel-bar-fill"></div></div>
+            </div>
+            <div class="rel-bar-row">
+                <span class="rel-bar-label">Shared Safety</span>
+                <div class="rel-bar-track"><div id="relSafetyBar" class="rel-bar-fill"></div></div>
+            </div>
+            <div class="rel-bar-row">
+                <span class="rel-bar-label">Shared Meaning</span>
+                <div class="rel-bar-track"><div id="relMeaningBar" class="rel-bar-fill"></div></div>
+            </div>
+            <div class="rel-bar-row">
+                <span class="rel-bar-label">Mutual Honesty</span>
+                <div class="rel-bar-track"><div id="relRealBar" class="rel-bar-fill"></div></div>
+            </div>
+            <div class="rel-bar-row">
+                <span class="rel-bar-label">Bond Security (Both)</span>
+                <div class="rel-bar-track"><div id="relAttachBar" class="rel-bar-fill"></div></div>
+            </div>
+
+            <div class="rel-status-wrap">
+                <span class="label-sm" style="color:#fff;">Relationship Status</span>
+                <select id="relStatus" onchange="app.setRelationshipStatus(this.value)" class="tip" data-tip="Overall climate of the relationship right now.">
+                    <option value="Neutral">Neutral</option>
+                    <option value="Surviving">Surviving</option>
+                    <option value="Strained">Strained</option>
+                    <option value="Disconnected">Disconnected</option>
+                    <option value="Stabilizing">Stabilizing</option>
+                    <option value="Growing">Growing</option>
+                    <option value="Thriving">Thriving</option>
+                    <option value="Deeply Connected">Deeply Connected</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="narrative-container">
+            <div id="narrative-title">Relationship Story</div>
+            <div id="narrative-box">Short, sentence-based reflections on what just happened will appear here.</div>
+        </div>
+
+        <div id="why-box">
+            <b>Why did this happen?</b><br>
+            <span id="why-text">After each interaction, this will explain how attachment, diagnosis, personality, and the relationship climate shaped the impact.</span>
+        </div>
+
+        <div id="suggest-box">
+            <b>What might help next?</b><br>
+            <span id="suggest-text">Suggestions for next steps will appear here based on the current state of Jack and Diane.</span>
+        </div>
+
+        <div style="margin-top:10px;margin-bottom:10px;">
+            <button class="small-btn" onclick="app.resetAll()">Reset Relationship</button>
+            <button class="small-btn" onclick="app.saveState()">Save</button>
+            <button class="small-btn" onclick="app.loadState()">Load</button>
+        </div>
+
+        <div class="hub-title">Interaction Builder</div>
+        <div class="hub-card">
+            <label class="label-sm tip" data-tip="Context of the moment between them.">1. Situation Type</label>
+            <select id="action-cat" onchange="app.populateActions()">
+                <option value="romantic">Romantic</option>
+                <option value="social">Social</option>
+                <option value="conflict">Conflict</option>
+                <option value="supportive">Supportive</option>
+                <option value="playful">Playful</option>
+                <option value="logistical">Logistical</option>
+                <option value="intimacy">Intimacy</option>
+                <option value="boundary">Boundary-Setting</option>
+                <option value="repair">Repair</option>
+            </select>
+
+            <label class="label-sm tip" data-tip="What one person is actually doing or saying.">2. Specific Action</label>
+            <select id="action-select" onchange="app.preview()"></select>
+
+            <label class="label-sm tip" data-tip="Who is taking the action.">3. Who Is Acting</label>
+            <select id="giver-select" onchange="app.updateGiverEmphasis();app.preview();">
+                <option value="0">Jack</option>
+                <option value="1">Diane</option>
+            </select>
+
+            <label class="label-sm tip" data-tip="Tone and delivery of the action.">4. How It Is Delivered</label>
+            <select id="technique-select" onchange="app.preview()">
+                <option value="1">Neutral Delivery</option>
+                <option value="1.4">Soft Startup (+Bond)</option>
+                <option value="1.2">Warm/Empathic</option>
+                <option value="0.8">Awkward/Clumsy</option>
+                <option value="-1.0">Sarcastic/Passive-Aggressive</option>
+                <option value="-1.5">Critical/Blaming</option>
+                <option value="-1.8">Contemptuous/Degrading</option>
+                <option value="0.6">Over-Giving/Self-Erasing</option>
+            </select>
+
+            <label class="label-sm tip" data-tip="How the receiver interprets the action inside their own mind.">5. How It Is Taken In</label>
+            <select id="interp-select" onchange="app.preview()">
+                <option value="1">Healthy Literal</option>
+                <option value="1.3">Grateful/Trusting</option>
+                <option value="2">Sensitive/Anxious</option>
+                <option value="2.2">Shame-Prone</option>
+                <option value="-1">Mistrustful (Flips Positives)</option>
+                <option value="-1.5">Paranoid/Hypervigilant</option>
+                <option value="0.7">Detached/Minimizing</option>
+            </select>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <button class="execute-btn" onclick="app.commit(true)">Accepted</button>
+                <button class="execute-btn" style="background:var(--lvl-3)!important;color:#fff" onclick="app.commit(false)">Not Accepted</button>
+            </div>
+        </div>
+
+        <div class="log-box" id="nexus-log"></div>
+    </div>
+
+    <!-- PERSON B -->
+    <div id="p1" class="person-pane" style="background:#f3e5f5;">
+        <h2 id="title1" style="margin:0;text-align:center;">Diane</h2>
+
+        <details open>
+            <summary>Profile</summary>
+
+            <label class="label-sm">Name</label>
+            <input id="name1" class="name-input" value="Diane" />
+
+            <label class="label-sm tip" data-tip="Overall character flavor; shapes how they tend to think and feel.">Personality Type</label>
+            <select id="mbti1"></select>
+
+            <label class="label-sm tip" data-tip="Attachment style: how this person bonds, protests, and protects themselves.">Attachment Style</label>
+            <select id="attachStyle1">
+                <option value="Neutral">Neutral</option>
+                <option value="Secure">Secure</option>
+                <option value="Anxious-Preoccupied">Anxious-Preoccupied</option>
+                <option value="Dismissive-Avoidant">Dismissive-Avoidant</option>
+                <option value="Fearful-Avoidant">Fearful-Avoidant</option>
+                <option value="Disorganized">Disorganized</option>
+                <option value="Earned Secure">Earned Secure</option>
+                <option value="Anxious-Avoidant Cycling">Anxious-Avoidant Cycling</option>
+                <option value="Preoccupied-Fearful Hybrid">Preoccupied-Fearful Hybrid</option>
+            </select>
+
+            <label class="label-sm tip" data-tip="How this person naturally gives love.">Preferred Love Language (Giving)</label>
+            <select id="loveGive1">
+                <option value="Words">Words of Affirmation</option>
+                <option value="Acts">Acts of Service</option>
+                <option value="Gifts">Gifts</option>
+                <option value="Time">Quality Time</option>
+                <option value="Touch">Physical Touch</option>
+            </select>
+
+            <label class="label-sm tip" data-tip="How this person best receives love.">Preferred Love Language (Receiving)</label>
+            <select id="loveReceive1">
+                <option value="Words">Words of Affirmation</option>
+                <option value="Acts">Acts of Service</option>
+                <option value="Gifts">Gifts</option>
+                <option value="Time">Quality Time</option>
+                <option value="Touch">Physical Touch</option>
+            </select>
+
+            <label class="label-sm tip" data-tip="How they tend to handle conflict.">Conflict Style</label>
+            <select id="conflictStyle1">
+                <option value="Soft">Soft Startup</option>
+                <option value="Criticism">Critical</option>
+                <option value="Defensive">Defensive</option>
+                <option value="Stonewalling">Stonewalling</option>
+                <option value="Contempt">Contemptuous</option>
+                <option value="Avoidant">Avoidant</option>
+                <option value="Repair-Oriented">Repair-Oriented</option>
+            </select>
+
+            <label class="label-sm">Mental Health Factors</label>
+            <div class="diag-scroll" id="diagBox1"></div>
+        </details>
+
+        <div class="face" id="face1">
+            <div class="eye" style="left:12px"></div>
+            <div class="eye" style="right:12px"></div>
+            <div class="mouth"></div>
+        </div>
+
+        <div class="graph-wrap">
+            <svg class="radar-svg" viewBox="0 0 200 200">
+                <circle cx="100" cy="100" r="70" fill="none" stroke="#eee" stroke-dasharray="2" />
+                <polygon class="radar-ghost" id="ghost1" points="" />
+                <polygon class="radar-poly" id="poly1" points="" />
+            </svg>
+            <div class="axis-label axis-top tip" data-tip="How much emotional fuel they have to show up.">Energy</div>
+            <div class="axis-label axis-right tip" data-tip="How protected and emotionally secure they feel.">Safety</div>
+            <div class="axis-label axis-bottom tip" data-tip="How purposeful and meaningful the relationship feels.">Meaning</div>
+            <div class="axis-label axis-left tip" data-tip="How honest and authentic they can be.">Authenticity</div>
+            <div class="effect-container" id="effects1"></div>
+        </div>
+
+        <span class="label-sm tip" data-tip="How secure this person feels with their partner.">Feeling Secure With Partner</span>
+        <div class="attach-wrap">
+            <div id="attachBar1" class="attach-fill"></div>
+            <div class="attach-label" id="attachText1">Neutral</div>
+        </div>
+
+        <span class="label-sm tip" data-tip="Deep, stable sense of worth.">Steady Self-Worth</span>
+        <div class="meter-wrap">
+            <div id="coreWorthBar1" class="meter-fill"></div>
+            <div class="meter-label" id="coreWorthText1">Core</div>
+        </div>
+
+        <span class="label-sm tip" data-tip="How easily they feel shame or rejection.">Sensitivity to Rejection</span>
+        <div class="meter-wrap">
+            <div id="fragileWorthBar1" class="meter-fill"></div>
+            <div class="meter-label" id="fragileWorthText1">Sensitive</div>
+        </div>
+
+        <span class="label-sm tip" data-tip="Who they think they should be.">Self-Expectations</span>
+        <div class="meter-wrap">
+            <div id="idealSelfBar1" class="meter-fill"></div>
+            <div class="meter-label" id="idealSelfText1">Ideal</div>
+        </div>
+
+        <span class="label-sm tip" data-tip="Hope and belief in the future.">Hope For The Future</span>
+        <div class="meter-wrap">
+            <div id="futureOutlookBar1" class="meter-fill"></div>
+            <div class="meter-label" id="futureOutlookText1">Outlook</div>
+        </div>
+
+        <span class="label-sm tip" data-tip="How easily they can calm and steady themselves.">Emotion Regulation Skill</span>
+        <div class="meter-wrap">
+            <div id="regBar1" class="meter-fill"></div>
+            <div class="meter-label" id="regText1">Reg</div>
+        </div>
+
+        <span class="label-sm tip" data-tip="How much they currently trust their partner.">Trust in Partner</span>
+        <div class="meter-wrap">
+            <div id="trustBar1" class="meter-fill"></div>
+            <div class="meter-label" id="trustText1">Trust</div>
+        </div>
+
+        <span class="label-sm tip" data-tip="How much outside stress they are carrying.">External Stress Load</span>
+        <div class="meter-wrap">
+            <div id="stressBar1" class="meter-fill"></div>
+            <div class="meter-label" id="stressText1">Stress</div>
+        </div>
+
+        <label class="label-sm tip" data-tip="Solo practices that shift inner state without direct interaction.">Personal Resilience Practice</label>
+        <select id="solo-action1" class="tip" data-tip="Solo practices that shift inner state without direct interaction.">
+            <option value="15,10,10,15">Deep Meditation</option>
+            <option value="25,0,0,10">Restorative Sleep</option>
+            <option value="0,0,40,40">Processing Shadow</option>
+            <option value="10,20,0,10">Grounding Breathwork</option>
+            <option value="5,5,25,15">Journaling Insight</option>
+            <option value="8,12,15,10">Therapy Session</option>
+            <option value="12,5,5,8">Exercise/Movement</option>
+        </select>
+        <button class="solo-btn" onclick="app.commitSolo(1)">Run Solo Practice</button>
+
+        <label class="label-sm tip" data-tip="Notes about this person over time.">Individual Notes</label>
+        <div id="indivLog1" class="indiv-log"></div>
+    </div>
+
+</div>
+
+<div id="tooltip" class="tooltip-bubble"></div>
+
+<script>
+var DIAG_EFFECTS = {
+    "RSD": {
+        recvMult: 1.6,
+        giveMult: 1.3,
+        axis: [1.2, 1.4, 1.1, 1.3],
+        worthFrag: 1.8,
+        worthCore: 1.2,
+        outlook: 1.3
+    },
+    "Anxiety": {
+        recvMult: 1.3,
+        giveMult: 1.1,
+        axis: [1.0, 1.5, 1.0, 1.1],
+        worthFrag: 1.4,
+        worthCore: 1.1,
+        outlook: 1.4
+    },
+    "Depression": {
+        recvMult: 1.1,
+        giveMult: 1.0,
+        axis: [0.8, 1.0, 1.3, 1.0],
+        worthFrag: 1.4,
+        worthCore: 1.3,
+        outlook: 1.8
+    },
+    "BPD": {
+        recvMult: 1.8,
+        giveMult: 1.4,
+        axis: [1.3, 1.6, 1.2, 1.4],
+        worthFrag: 2.0,
+        worthCore: 1.4,
+        outlook: 1.6
+    },
+    "Trauma": {
+        recvMult: 1.4,
+        giveMult: 1.2,
+        axis: [1.0, 1.7, 1.0, 1.2],
+        worthFrag: 1.5,
+        worthCore: 1.2,
+        outlook: 1.5
+    },
+    "PTSD": {
+        recvMult: 1.5,
+        giveMult: 1.2,
+        axis: [1.0, 1.8, 1.0, 1.2],
+        worthFrag: 1.6,
+        worthCore: 1.3,
+        outlook: 1.6
+    },
+    "ADHD": {
+        recvMult: 1.1,
+        giveMult: 1.0,
+        axis: [1.3, 1.0, 1.0, 1.0],
+        worthFrag: 1.1,
+        worthCore: 1.0,
+        outlook: 1.1
+    },
+    "Autism": {
+        recvMult: 1.2,
+        giveMult: 1.1,
+        axis: [1.0, 1.3, 1.0, 1.4],
+        worthFrag: 1.2,
+        worthCore: 1.1,
+        outlook: 1.2
+    }
+};
+
+var REL_STATUS_EFFECTS = {
+    "Neutral":          {e:0,s:0,m:0,r:0,a:0},
+    "Surviving":        {e:-4,s:-6,m:-4,r:-3,a:-5},
+    "Strained":         {e:-3,s:-4,m:-3,r:-2,a:-3},
+    "Disconnected":     {e:-2,s:-3,m:-4,r:-3,a:-4},
+    "Stabilizing":      {e:2,s:3,m:2,r:2,a:2},
+    "Growing":          {e:3,s:4,m:3,r:3,a:3},
+    "Thriving":         {e:4,s:5,m:4,r:4,a:4},
+    "Deeply Connected": {e:5,s:6,m:5,r:5,a:5}
+};
+
+var DATA = {
+    diags:[
+        {n:"Bipolar",d:"Energy flux and mood cycling."},
+        {n:"ADHD",d:"Focus, impulse, and regulation shifts."},
+        {n:"RSD",d:"Rejection sensitivity; social pain amplified."},
+        {n:"Anxiety",d:"High alert, worry, and threat scanning."},
+        {n:"Depression",d:"Low energy, hopelessness, withdrawal."},
+        {n:"Dyslexia",d:"Processing differences; effort and shame risk."},
+        {n:"Menopause",d:"Hormonal flux; mood and body shifts."},
+        {n:"Trauma",d:"Triggers, hypervigilance, dissociation risk."},
+        {n:"PTSD",d:"Trauma-related intrusions and avoidance."},
+        {n:"Social Anxiety",d:"Fear of judgment and humiliation."},
+        {n:"OCD",d:"Intrusive thoughts and compulsive rituals."},
+        {n:"Autism",d:"Social processing and sensory differences."},
+        {n:"BPD",d:"Emotion intensity and abandonment sensitivity."},
+        {n:"Substance Use",d:"Addiction-related instability."},
+        {n:"Eating Disorder",d:"Body image and control struggles."},
+        {n:"Chronic Pain",d:"Ongoing pain affecting mood and energy."}
+    ],
+    mbtis:[
+        "Neutral",
+        "INFJ-Advocate","INTJ-Architect","INFP-Mediator","INTP-Logician",
+        "ENFJ-Protagonist","ENFP-Campaigner","ENTJ-Commander","ENTP-Debater",
+        "ISFJ-Defender","ISFP-Adventurer","ISTJ-Logistician","ISTP-Virtuoso",
+        "ESFJ-Consul","ESFP-Entertainer","ESTJ-Executive","ESTP-Entrepreneur"
+    ],
+    actions:{
+        romantic:[
+            {n:"Long Cuddle",v:[10,10,5,10],ll:"Touch"},
+            {n:"Forehead Kiss",v:[5,10,5,10],ll:"Touch"},
+            {n:"Sex",v:[20,15,10,20],ll:"Touch"},
+            {n:"Love Confession",v:[8,12,18,15],ll:"Words"},
+            {n:"Surprise Date",v:[12,10,15,10],ll:"Time"}
+        ],
+        social:[
+            {n:"Praise",v:[10,15,5,10],ll:"Words"},
+            {n:"Deep Talk",v:[5,20,10,15],ll:"Time"},
+            {n:"Joke",v:[5,5,10,5],ll:"Words"},
+            {n:"Group Invite",v:[8,10,5,5],ll:"Time"},
+            {n:"Public Compliment",v:[10,12,8,6],ll:"Words"}
+        ],
+        conflict:[
+            {n:"Critique",v:[-15,-20,0,-10],ll:"Words"},
+            {n:"Silent Treatment",v:[-20,-50,-20,-30],ll:"Time"},
+            {n:"Raised Voice",v:[-10,-25,0,-10],ll:"Words"},
+            {n:"Sarcastic Jab",v:[-8,-18,-5,-12],ll:"Words"},
+            {n:"Stonewalling",v:[-12,-35,-10,-15],ll:"Time"}
+        ],
+        supportive:[
+            {n:"Validation",v:[5,18,10,8],ll:"Words"},
+            {n:"Comforting Touch",v:[8,15,8,10],ll:"Touch"},
+            {n:"Reassurance",v:[6,18,8,6],ll:"Words"},
+            {n:"Listening Presence",v:[4,15,10,8],ll:"Time"},
+            {n:"Encouragement",v:[8,12,10,6],ll:"Words"}
+        ],
+        playful:[
+            {n:"Light Teasing",v:[6,4,8,6],ll:"Words"},
+            {n:"Shared Joke",v:[8,6,10,6],ll:"Words"},
+            {n:"Inside Reference",v:[6,8,12,8],ll:"Words"},
+            {n:"Playful Chase",v:[10,6,6,6],ll:"Time"},
+            {n:"Silly Dance",v:[12,4,8,6],ll:"Time"}
+        ],
+        logistical:[
+            {n:"Planning Together",v:[4,10,8,6],ll:"Acts"},
+            {n:"Offering Help",v:[6,12,6,6],ll:"Acts"},
+            {n:"Clarifying Expectations",v:[2,10,8,8],ll:"Words"},
+            {n:"Budget Talk",v:[0,8,6,4],ll:"Words"},
+            {n:"Scheduling Check-in",v:[2,8,6,4],ll:"Time"}
+        ],
+        intimacy:[
+            {n:"Vulnerable Disclosure",v:[4,8,18,16],ll:"Words"},
+            {n:"Sharing Fear",v:[2,6,16,18],ll:"Words"},
+            {n:"Naming a Need",v:[4,10,14,16],ll:"Words"},
+            {n:"Sharing Childhood Story",v:[4,8,14,14],ll:"Words"},
+            {n:"Admitting Insecurity",v:[2,6,16,18],ll:"Words"}
+        ],
+        boundary:[
+            {n:"Gentle No",v:[0,8,6,12],ll:"Words"},
+            {n:"Stating a Limit",v:[0,10,6,14],ll:"Words"},
+            {n:"Requesting Space",v:[-2,6,4,12],ll:"Time"},
+            {n:"Protecting Own Time",v:[0,8,4,10],ll:"Time"},
+            {n:"Saying 'This Hurts'",v:[-2,6,10,14],ll:"Words"}
+        ],
+        repair:[
+            {n:"Apology",v:[0,12,10,10],ll:"Words"},
+            {n:"Taking Responsibility",v:[0,14,12,12],ll:"Words"},
+            {n:"Reaffirming Commitment",v:[4,16,12,10],ll:"Words"},
+            {n:"Checking Impact",v:[2,12,10,12],ll:"Words"},
+            {n:"Offering Repair Plan",v:[2,14,12,10],ll:"Acts"}
+        ]
+    }
+};
+
+function Engine(){
+    this.people=[
+        {bat:80,safe:70,mean:60,real:80,diags:{},attach:50,
+         coreWorth:70,fragileWorth:65,idealSelf:80,futureOutlook:70,volatility:5,
+         trust:65,reg:65,stress:30,emotionalDebt:0,repairCharge:0},
+        {bat:80,safe:70,mean:60,real:80,diags:{},attach:50,
+         coreWorth:70,fragileWorth:65,idealSelf:80,futureOutlook:70,volatility:5,
+         trust:65,reg:65,stress:30,emotionalDebt:0,repairCharge:0}
+    ];
+    this.axisWeightsReceiver=[1.0,1.05,1.12,1.08]; // meaning slightly stronger
+    this.lastEvent=null;
+    this.relationshipStatus="Neutral";
+}
+
+Engine.prototype.getAttachmentProfile = function(idx){
+    var style = document.getElementById("attachStyle"+idx).value;
+    var profile = {
+        giverMult:1.0,
+        recvMult:1.0,
+        volatility:1.0,
+        trustSlope:1.0
+    };
+    if(style==="Neutral") return profile;
+
+    if(style==="Secure"){
+        profile.giverMult=1.0;
+        profile.recvMult=1.0;
+        profile.volatility=0.8;
+        profile.trustSlope=1.1;
+    }else if(style==="Anxious-Preoccupied"){
+        profile.giverMult=1.2;
+        profile.recvMult=1.3;
+        profile.volatility=1.3;
+        profile.trustSlope=0.9;
+    }else if(style==="Dismissive-Avoidant"){
+        profile.giverMult=0.9;
+        profile.recvMult=0.8;
+        profile.volatility=1.0;
+        profile.trustSlope=0.8;
+    }else if(style==="Fearful-Avoidant"){
+        profile.giverMult=1.1;
+        profile.recvMult=1.2;
+        profile.volatility=1.4;
+        profile.trustSlope=0.8;
+    }else if(style==="Disorganized"){
+        profile.giverMult=1.2;
+        profile.recvMult=1.3;
+        profile.volatility=1.5;
+        profile.trustSlope=0.7;
+    }else if(style==="Earned Secure"){
+        profile.giverMult=1.0;
+        profile.recvMult=1.0;
+        profile.volatility=0.9;
+        profile.trustSlope=1.2;
+    }else if(style==="Anxious-Avoidant Cycling"){
+        profile.giverMult=1.1;
+        profile.recvMult=1.2;
+        profile.volatility=1.4;
+        profile.trustSlope=0.85;
+    }else if(style==="Preoccupied-Fearful Hybrid"){
+        profile.giverMult=1.2;
+        profile.recvMult=1.3;
+        profile.volatility=1.5;
+        profile.trustSlope=0.8;
+    }
+    return profile;
+};
+
+Engine.prototype.getPersonalityWeights = function(idx){
+    var sel=document.getElementById("mbti"+idx);
+    if(!sel || !sel.value || sel.value==="Neutral") return [1,1,1,1];
+    var code=sel.value.split('-')[0];
+    var w=[1,1,1,1];
+
+    if(code.indexOf("NF")!==-1){ w[2]*=1.12; w[3]*=1.08; }
+    if(code.indexOf("NT")!==-1){ w[3]*=1.12; }
+    if(code.indexOf("SJ")!==-1){ w[1]*=1.12; }
+    if(code.indexOf("SP")!==-1){ w[0]*=1.12; }
+    if(code.indexOf("FJ")!==-1){ w[2]*=1.08; }
+    if(code.indexOf("TP")!==-1){ w[3]*=1.08; }
+
+    return w;
+};
+
+Engine.prototype.getDiagModifiers = function(personIdx){
+    var p=this.people[personIdx];
+    var mods={
+        recvMult:1,
+        giveMult:1,
+        axis:[1,1,1,1],
+        worthFrag:1,
+        worthCore:1,
+        outlook:1
+    };
+
+    for(var diag in p.diags){
+        var level=p.diags[diag];
+        if(level>0 && DIAG_EFFECTS[diag]){
+            var eff=DIAG_EFFECTS[diag];
+            var scale=1 + level*0.33;
+
+            mods.recvMult *= eff.recvMult * scale;
+            mods.giveMult *= eff.giveMult * scale;
+            mods.worthFrag *= eff.worthFrag * scale;
+            mods.worthCore *= eff.worthCore * scale;
+            mods.outlook *= eff.outlook * scale;
+
+            var ax=mods.axis, ex=eff.axis;
+            ax[0]*=ex[0]*scale;
+            ax[1]*=ex[1]*scale;
+            ax[2]*=ex[2]*scale;
+            ax[3]*=ex[3]*scale;
+        }
+    }
+    return mods;
+};
+
+Engine.prototype.init=function(){
+    for(var idx=0;idx<2;idx++){
+        var dBox=document.getElementById("diagBox"+idx);
+        var frag=this.people[idx].diags;
+        for(var i=0;i<DATA.diags.length;i++){
+            var d=DATA.diags[i];
+            var row=document.createElement("div");
+            row.className="diag-row tip";
+            row.setAttribute("data-tip", d.n + ": " + d.d);
+            row.innerHTML=
+                '<span>'+d.n+'</span>'+
+                '<div class="lvl-group">'+
+                    '<div class="lvl-tile" onclick="app.setDiag('+idx+',\''+d.n+'\',0,this)"></div>'+
+                    '<div class="lvl-tile t-1" onclick="app.setDiag('+idx+',\''+d.n+'\',1,this)"></div>'+
+                    '<div class="lvl-tile t-2" onclick="app.setDiag('+idx+',\''+d.n+'\',2,this)"></div>'+
+                    '<div class="lvl-tile t-3" onclick="app.setDiag('+idx+',\''+d.n+'\',3,this)"></div>'+
+                '</div>';
+            dBox.appendChild(row);
+            frag[d.n]=0;
+        }
+        var mSel=document.getElementById("mbti"+idx);
+        for(var j=0;j<DATA.mbtis.length;j++){
+            var m=DATA.mbtis[j];
+            mSel.add(new Option(m,m));
+        }
+    }
+    this.populateActions();
+    this.updateGiverNames();
+    this.updateGiverEmphasis();
+    this.bindNameEditing();
+    this.render();
+    initTooltips();
+};
+
+Engine.prototype.bindNameEditing=function(){
+    var self=this;
+    ["0","1"].forEach(function(i){
+        var inp=document.getElementById("name"+i);
+        inp.addEventListener("input",function(){
+            var val=inp.value || (i==="0"?"Jack":"Diane");
+            document.getElementById("title"+i).textContent=val;
+            self.updateGiverNames();
+            self.refreshNarrativeAndGuidance();
+        });
+    });
+};
+
+Engine.prototype.refreshNarrativeAndGuidance=function(){
+    if(!this.lastEvent) return;
+    if(this.lastEvent.type==="rel"){
+        this.updateNarrative(
+            this.lastEvent.domain,
+            this.lastEvent.actionName,
+            this.lastEvent.accepted,
+            this.lastEvent.giverIdx,
+            this.lastEvent.receiverIdx,
+            this.lastEvent.impactA,
+            this.lastEvent.impactB
+        );
+        this.updateGuidance(
+            this.lastEvent.domain,
+            this.lastEvent.actionName,
+            this.lastEvent.accepted,
+            this.lastEvent.giverIdx,
+            this.lastEvent.receiverIdx,
+            this.lastEvent.impactA,
+            this.lastEvent.impactB
+        );
+        this.updateWhyBox(this.lastEvent);
+        this.updateSuggestions();
+    }else if(this.lastEvent.type==="solo"){
+        this.updateNarrativeSolo(
+            this.lastEvent.personIdx,
+            this.lastEvent.actionName,
+            this.lastEvent.vals
+        );
+        this.updateGuidanceSolo(
+            this.lastEvent.personIdx,
+            this.lastEvent.actionName,
+            this.lastEvent.vals
+        );
+        this.updateWhyBox(this.lastEvent);
+        this.updateSuggestions();
+    }
+};
+
+Engine.prototype.updateGiverNames=function(){
+    var gSel=document.getElementById("giver-select");
+    var opt0=gSel.options[0];
+    var opt1=gSel.options[1];
+    opt0.textContent=this.getName(0);
+    opt1.textContent=this.getName(1);
+};
+
+Engine.prototype.getName=function(idx){
+    var v=document.getElementById("name"+idx).value.trim();
+    return v || (idx===0?"Jack":"Diane");
+};
+
+Engine.prototype.setDiag=function(p,n,v,el){
+    this.people[p].diags[n]=v;
+    var tiles=el.parentElement.children;
+    for(var i=0;i<4;i++){
+        tiles[i].classList.remove("active");
+        if(i===v)tiles[i].classList.add("active");
+    }
+    this.render();
+};
+
+Engine.prototype.populateActions=function(){
+    var cat=document.getElementById("action-cat").value;
+    var sel=document.getElementById("action-select");
+    sel.innerHTML="";
+    var arr=DATA.actions[cat];
+    for(var i=0;i<arr.length;i++){
+        var a=arr[i];
+        sel.add(new Option(a.n,a.v.join(",")+"|"+a.ll));
+    }
+    this.preview();
+};
+
+Engine.prototype.preview=function(){
+    var sel=document.getElementById("action-select");
+    if(!sel.value)return;
+    var parts=sel.value.split("|");
+    var vals=parts[0].split(",").map(Number);
+    var tech=parseFloat(document.getElementById("technique-select").value);
+    var interp=parseFloat(document.getElementById("interp-select").value);
+    var ghost=vals.map(function(v){return v*tech*interp;});
+
+    var giverIdx=parseInt(document.getElementById("giver-select").value,10);
+    var receiverIdx=giverIdx===0?1:0;
+    this.drawRadar(receiverIdx,ghost,true);
+};
+
+Engine.prototype.commit=function(accepted){
+    var sel=document.getElementById("action-select");
+    if(!sel.value)return;
+
+    var parts=sel.value.split("|");
+    var vals=parts[0].split(",").map(Number);
+    var loveLang=parts[1];
+    var tech=parseFloat(document.getElementById("technique-select").value);
+    var interp=parseFloat(document.getElementById("interp-select").value);
+
+    var giverIdx=parseInt(document.getElementById("giver-select").value,10);
+    var receiverIdx=giverIdx===0?1:0;
+
+    var giver=this.people[giverIdx];
+    var receiver=this.people[receiverIdx];
+
+    var giverProfile=this.getAttachmentProfile(giverIdx);
+    var recvProfile=this.getAttachmentProfile(receiverIdx);
+
+    var giverPersW=this.getPersonalityWeights(giverIdx);
+    var recvPersW=this.getPersonalityWeights(receiverIdx);
+
+    var recvMods=this.getDiagModifiers(receiverIdx);
+    var giveMods=this.getDiagModifiers(giverIdx);
+
+    var impactA,impactB;
+
+    var recvLove=document.getElementById("loveReceive"+receiverIdx).value;
+    var loveMatchMult=(recvLove===loveLang?1.25:1.0);
+
+    var conflictStyle=document.getElementById("conflictStyle"+giverIdx).value;
+    var conflictMult=1.0;
+    if(conflictStyle==="Criticism"||conflictStyle==="Contempt") conflictMult*=1.2;
+    if(conflictStyle==="Repair-Oriented"||conflictStyle==="Soft") conflictMult*=0.9;
+
+    var regRecv=this.people[receiverIdx].reg;
+    var regMult=1.0 + (50-regRecv)/200;
+
+    var stressRecv=this.people[receiverIdx].stress;
+    var stressMult=1.0 + (stressRecv-50)/200;
+
+    var relStatus=this.relationshipStatus;
+    var relMult=1.0;
+    if(relStatus==="Surviving"||relStatus==="Strained"||relStatus==="Disconnected") relMult*=1.1;
+    if(relStatus==="Growing"||relStatus==="Thriving"||relStatus==="Deeply Connected") relMult*=0.9;
+
+    if(accepted){
+        var base=vals.map(function(v){return v*tech*interp;});
+
+        impactB=new Array(4);
+        impactA=new Array(4);
+
+        for(var i=0;i<4;i++){
+            var valB=base[i]*this.axisWeightsReceiver[i]*recvPersW[i]*recvMods.recvMult*recvMods.axis[i]*recvProfile.recvMult;
+            valB*=loveMatchMult*regMult*stressMult*relMult;
+            impactB[i]=valB;
+
+            var valA=vals[i]*giverPersW[i]*giveMods.giveMult*giveMods.axis[i]*giverProfile.giverMult;
+            valA*=conflictMult;
+            impactA[i]=valA;
+        }
+
+        giver.attach=Math.min(100,giver.attach+5*giverProfile.trustSlope);
+        receiver.attach=Math.min(100,receiver.attach+5*recvProfile.trustSlope);
+
+        giver.trust=Math.min(100,giver.trust+3*giverProfile.trustSlope);
+        receiver.trust=Math.min(100,receiver.trust+4*recvProfile.trustSlope);
+
+        receiver.emotionalDebt=Math.max(0,receiver.emotionalDebt-5);
+        giver.emotionalDebt=Math.max(0,giver.emotionalDebt-3);
+
+        giver.repairCharge=Math.max(0,giver.repairCharge-5);
+        receiver.repairCharge=Math.max(0,receiver.repairCharge-5);
+
+        this.updateSelfWorthOnAccepted(giverIdx,receiverIdx,impactA,impactB,giveMods,recvMods,giverProfile,recvProfile);
+    }else{
+        impactB=[-5,-10,0,15];
+        var rsdA=(giver.diags["RSD"]||0);
+        impactA=[-25*(1+rsdA),-15,-20,-5];
+
+        for(var j=0;j<4;j++){
+            impactB[j]*=recvMods.recvMult*recvMods.axis[j]*recvProfile.recvMult*regMult*stressMult*relMult;
+            impactA[j]*=giveMods.giveMult*giveMods.axis[j]*giverProfile.giverMult*conflictMult;
+        }
+
+        giver.attach=Math.max(0,giver.attach-20*giverProfile.volatility);
+        receiver.attach=Math.max(0,receiver.attach-10*recvProfile.volatility);
+
+        giver.trust=Math.max(0,giver.trust-10*giverProfile.volatility);
+        receiver.trust=Math.max(0,receiver.trust-12*recvProfile.volatility);
+
+        receiver.emotionalDebt=Math.min(100,receiver.emotionalDebt+10);
+        giver.emotionalDebt=Math.min(100,giver.emotionalDebt+6);
+
+        giver.repairCharge=Math.min(100,giver.repairCharge+15);
+        receiver.repairCharge=Math.min(100,receiver.repairCharge+10);
+
+        this.updateSelfWorthOnRejected(giverIdx,receiverIdx,impactA,impactB,giveMods,recvMods,giverProfile,recvProfile);
+    }
+
+    this.applyImpact(receiverIdx,impactB);
+    this.applyImpact(giverIdx,impactA);
+
+    this.updateFeedbackLoop(giverIdx,giveMods,giverProfile);
+    this.updateFeedbackLoop(receiverIdx,recvMods,recvProfile);
+
+    var name=sel.options[sel.selectedIndex].text;
+    var domainSel=document.getElementById("action-cat");
+    var domainText=domainSel.options[domainSel.selectedIndex].text;
+
+    this.logEntry(domainText,name,accepted,impactA,impactB,giverIdx,receiverIdx);
+    this.updateNarrative(domainText,name,accepted,giverIdx,receiverIdx,impactA,impactB);
+    this.updateGuidance(domainText,name,accepted,giverIdx,receiverIdx,impactA,impactB);
+    this.appendIndividualLogs(domainText,name,accepted,giverIdx,receiverIdx,impactA,impactB);
+    this.updateWhyBox({
+        type:"rel",
+        domain:domainText,
+        actionName:name,
+        accepted:accepted,
+        giverIdx:giverIdx,
+        receiverIdx:receiverIdx,
+        impactA:impactA,
+        impactB:impactB,
+        loveLang:loveLang,
+        relStatus:relStatus
+    });
+    this.updateSuggestions();
+
+    this.spawnPerceptionEffects(receiverIdx,impactB);
+    this.lastEvent={
+        type:"rel",
+        domain:domainText,
+        actionName:name,
+        accepted:accepted,
+        giverIdx:giverIdx,
+        receiverIdx:receiverIdx,
+        impactA:impactA.slice(),
+        impactB:impactB.slice()
+    };
+
+    this.render();
+};
+
+Engine.prototype.updateSelfWorthOnAccepted=function(giverIdx,receiverIdx,impactA,impactB,giveMods,recvMods,giverProfile,recvProfile){
+    var giver=this.people[giverIdx];
+    var receiver=this.people[receiverIdx];
+
+    var sumB=impactB[0]+impactB[1]+impactB[2]+impactB[3];
+    var sumA=impactA[0]+impactA[1]+impactA[2]+impactA[3];
+
+    receiver.fragileWorth=Math.max(0,Math.min(100,receiver.fragileWorth + sumB*0.08*recvMods.worthFrag*recvProfile.recvMult));
+    giver.fragileWorth   =Math.max(0,Math.min(100,giver.fragileWorth + sumA*0.05*giveMods.worthFrag*giverProfile.giverMult));
+
+    receiver.coreWorth=Math.max(0,Math.min(100,receiver.coreWorth + (impactB[2]+impactB[3])*0.04*recvMods.worthCore*recvProfile.trustSlope));
+    giver.coreWorth   =Math.max(0,Math.min(100,giver.coreWorth + (impactA[2]+impactA[3])*0.03*giveMods.worthCore*giverProfile.trustSlope));
+
+    receiver.futureOutlook=Math.max(0,Math.min(100,receiver.futureOutlook + sumB*0.06*recvMods.outlook*recvProfile.trustSlope));
+    giver.futureOutlook   =Math.max(0,Math.min(100,giver.futureOutlook + sumA*0.04*giveMods.outlook*giverProfile.trustSlope));
+};
+
+Engine.prototype.updateSelfWorthOnRejected=function(giverIdx,receiverIdx,impactA,impactB,giveMods,recvMods,giverProfile,recvProfile){
+    var giver=this.people[giverIdx];
+    var receiver=this.people[receiverIdx];
+
+    var rsdR=(receiver.diags["RSD"]||0);
+    var traumaR=(receiver.diags["Trauma"]||0)+(receiver.diags["PTSD"]||0);
+    var bpdR=(receiver.diags["BPD"]||0);
+    var sensFactor=1+0.3*rsdR+0.2*traumaR+0.2*bpdR;
+
+    receiver.fragileWorth=Math.max(0,Math.min(100,receiver.fragileWorth - 15*sensFactor*recvMods.worthFrag*recvProfile.volatility));
+    giver.fragileWorth   =Math.max(0,Math.min(100,giver.fragileWorth - 5*giveMods.worthFrag*giverProfile.volatility));
+
+    receiver.coreWorth=Math.max(0,Math.min(100,receiver.coreWorth - 4*sensFactor*recvMods.worthCore*recvProfile.volatility));
+    giver.coreWorth   =Math.max(0,Math.min(100,giver.coreWorth - 2*giveMods.worthCore*giverProfile.volatility));
+
+    receiver.futureOutlook=Math.max(0,Math.min(100,receiver.futureOutlook - 10*sensFactor*recvMods.outlook*recvProfile.volatility));
+    giver.futureOutlook   =Math.max(0,Math.min(100,giver.futureOutlook - 4*giveMods.outlook*giverProfile.volatility));
+};
+
+Engine.prototype.updateFeedbackLoop=function(idx,diagMods,attachProfile){
+    var p=this.people[idx];
+
+    var gap=p.idealSelf - p.coreWorth;
+    var absGap=Math.abs(gap);
+
+    if(absGap>15){
+        p.fragileWorth=Math.max(0,Math.min(100,p.fragileWorth - absGap*0.05*diagMods.worthFrag*attachProfile.volatility));
+        p.futureOutlook=Math.max(0,Math.min(100,p.futureOutlook - absGap*0.03*diagMods.outlook*attachProfile.volatility));
+    }else{
+        p.fragileWorth=Math.max(0,Math.min(100,p.fragileWorth + 1*diagMods.worthFrag*attachProfile.trustSlope));
+        p.futureOutlook=Math.max(0,Math.min(100,p.futureOutlook + 0.5*diagMods.outlook*attachProfile.trustSlope));
+    }
+
+    var trend=((p.bat + p.safe + p.mean + p.real)/4) - 60;
+    p.idealSelf=Math.max(40,Math.min(100,p.idealSelf + trend*0.01));
+
+    var volatility=Math.abs(trend);
+    p.volatility=(p.volatility*0.7 + volatility*0.3)*diagMods.outlook*attachProfile.volatility;
+    p.coreWorth=Math.max(0,Math.min(100,p.coreWorth - p.volatility*0.02*diagMods.worthCore));
+
+    var stressDrift=(p.stress-40)/200;
+    p.bat=Math.max(0,Math.min(100,p.bat - stressDrift*2));
+};
+
+Engine.prototype.commitSolo=function(pIdx){
+    var vals=document.getElementById("solo-action"+pIdx).value.split(",").map(Number);
+    var mods=this.getDiagModifiers(pIdx);
+    var attachProfile=this.getAttachmentProfile(pIdx);
+
+    this.applyImpact(pIdx,vals);
+
+    var p=this.people[pIdx];
+    p.coreWorth=Math.max(0,Math.min(100,p.coreWorth + (vals[2]+vals[3])*0.05*mods.worthCore*attachProfile.trustSlope));
+    p.fragileWorth=Math.max(0,Math.min(100,p.fragileWorth + (vals[1]+vals[2])*0.04*mods.worthFrag*attachProfile.trustSlope));
+    p.futureOutlook=Math.max(0,Math.min(100,p.futureOutlook + (vals[2])*0.05*mods.outlook*attachProfile.trustSlope));
+
+    p.stress=Math.max(0,Math.min(100,p.stress - 5));
+    p.reg=Math.max(0,Math.min(100,p.reg + 4));
+
+    this.updateFeedbackLoop(pIdx,mods,attachProfile);
+
+    var opt=document.getElementById("solo-action"+pIdx);
+    var name=opt.options[opt.selectedIndex].text;
+    this.logSolo(pIdx,name,vals);
+    this.updateNarrativeSolo(pIdx,name,vals);
+    this.updateGuidanceSolo(pIdx,name,vals);
+    this.appendIndividualLogs("Solo",name,true,pIdx,pIdx,vals,[0,0,0,0]);
+    this.spawnPerceptionEffects(pIdx,vals);
+
+    this.lastEvent={
+        type:"solo",
+        personIdx:pIdx,
+        actionName:name,
+        vals:vals.slice()
+    };
+    this.updateWhyBox(this.lastEvent);
+    this.updateSuggestions();
+
+    this.render();
+};
+
+Engine.prototype.applyImpact=function(idx,impact){
+    if(!impact||impact.length!==4)return;
+    var p=this.people[idx];
+    p.bat =Math.max(0,Math.min(100,p.bat +impact[0]));
+    p.safe=Math.max(0,Math.min(100,p.safe+impact[1]));
+    p.mean=Math.max(0,Math.min(100,p.mean+impact[2]));
+    p.real=Math.max(0,Math.min(100,p.real+impact[3]));
+};
+
+Engine.prototype.logEntry=function(domain,name,acc,valA,valB,giverIdx,receiverIdx){
+    var l=document.getElementById("nexus-log");
+    var isNeg=valB[0]<0 || valB[1]<0 || valB[2]<0 || valB[3]<0 || !acc;
+
+    var gName=this.getName(giverIdx);
+    var rName=this.getName(receiverIdx);
+
+    var aVals=(giverIdx===0?valA:valB);
+    var bVals=(giverIdx===0?valB:valA);
+
+    var html='<div class="log-entry">'+
+        '<b>'+(acc?'ACCEPTED':'NOT ACCEPTED')+': '+domain+' – '+name+'</b><br>'+
+        '<small>Giver: '+gName+' | Receiver: '+rName+' | Status: '+this.relationshipStatus+'</small><br>'+
+        '<small style="color:var(--pA-text)">A Changes → Energy: '+aVals[0].toFixed(1)+', Safety: '+aVals[1].toFixed(1)+', Meaning: '+aVals[2].toFixed(1)+', Authenticity: '+aVals[3].toFixed(1)+'</small><br>'+
+        '<small style="color:var(--pB-text)">B Changes → Energy: '+bVals[0].toFixed(1)+', Safety: '+bVals[1].toFixed(1)+', Meaning: '+bVals[2].toFixed(1)+', Authenticity: '+bVals[3].toFixed(1)+'</small>';
+
+    var recP=isNeg?'Grounding + Self-Compassion':'Keep practicing slow, honest sharing.';
+    var recR=isNeg?'Name impact gently and repair.':'Lean into this pattern and repeat it.';
+
+    html+='<div style="margin-top:5px;">'+
+        '<span class="rec-tag rec-personal">Personal: '+recP+'</span>'+
+        '<span class="rec-tag rec-interpersonal">Relational: '+recR+'</span>'+
+        '</div></div>';
+
+    l.innerHTML=html+l.innerHTML;
+};
+
+Engine.prototype.appendIndividualLogs=function(domain,name,accepted,giverIdx,receiverIdx,impactA,impactB){
+    var gName=this.getName(giverIdx);
+    var rName=this.getName(receiverIdx);
+
+    var sumB=impactB[0]+impactB[1]+impactB[2]+impactB[3];
+    var sumA=impactA[0]+impactA[1]+impactA[2]+impactA[3];
+
+    var gLog=document.getElementById("indivLog"+giverIdx);
+    var rLog=document.getElementById("indivLog"+receiverIdx);
+
+    var gHtml='<div class="log-entry">'+
+        '<b>'+(accepted?'OFFERED':'ATTEMPTED')+': '+domain+' – '+name+'</b><br>'+
+        '<small>Partner: '+rName+'</small><br>'+
+        '<small>Self Impact Total: '+sumA.toFixed(1)+'</small><br>'+
+        '<small>Partner Impact Total: '+sumB.toFixed(1)+'</small>'+
+        '</div>';
+
+    var rHtml='<div class="log-entry">'+
+        '<b>'+(accepted?'RECEIVED':'DECLINED')+': '+domain+' – '+name+'</b><br>'+
+        '<small>From: '+gName+'</small><br>'+
+        '<small>Felt Impact Total: '+sumB.toFixed(1)+'</small>'+
+        '</div>';
+
+    gLog.innerHTML=gHtml+gLog.innerHTML;
+    if(giverIdx!==receiverIdx){
+        rLog.innerHTML=rHtml+rLog.innerHTML;
+    }
+};
+
+Engine.prototype.logSolo=function(idx,name,vals){
+    var l=document.getElementById("nexus-log");
+    var char=this.getName(idx);
+    var dV=vals[0],dS=vals[1],dM=vals[2],dR=vals[3];
+
+    l.innerHTML=
+        '<div class="log-entry" style="border-left:4px solid var(--meaning)">'+
+        '<b>SOLO PRACTICE: '+name+'</b><br>'+
+        '<small>Individual: '+char+'</small><br>'+
+        '<small>Self Changes → Energy: '+dV.toFixed(1)+', Safety: '+dS.toFixed(1)+', Meaning: '+dM.toFixed(1)+', Authenticity: '+dR.toFixed(1)+'</small>'+
+        '</div>'+l.innerHTML;
+};
+
+Engine.prototype.updateNarrative=function(domain,name,accepted,giverIdx,receiverIdx,impactA,impactB){
+    var box=document.getElementById("narrative-box");
+    var giverLabel=this.getName(giverIdx);
+    var receiverLabel=this.getName(receiverIdx);
+
+    var dV=impactB[0], dS=impactB[1], dM=impactB[2], dR=impactB[3];
+
+    var tone;
+    if(dS>0 && dM>0) tone='This moment gently strengthens both safety and shared meaning between them.';
+    else if(dS<0 && dM<0) tone='This moment quietly erodes safety and shared meaning, making the bond feel more fragile.';
+    else if(dS>0 || dM>0) tone='Something good lands, but there are mixed signals in how safe or meaningful it feels.';
+    else tone='The interaction leaves the field tense and uncertain, with no clear gain in trust or meaning.';
+
+    var climate=' The relationship is currently in a "'+this.relationshipStatus+'" phase, which colors how each move is felt.';
+
+    var firstSentence = giverLabel+' offers "'+name+'" in a '+domain.toLowerCase()+' moment to '+receiverLabel+'.';
+    var secondSentence = accepted
+        ? receiverLabel+' takes it in, shifting their inner world: Energy '+dV.toFixed(1)+', Safety '+dS.toFixed(1)+', Meaning '+dM.toFixed(1)+', Authenticity '+dR.toFixed(1)+'.'
+        : receiverLabel+' does not fully take it in, and the impact lands as: Energy '+dV.toFixed(1)+', Safety '+dS.toFixed(1)+', Meaning '+dM.toFixed(1)+', Authenticity '+dR.toFixed(1)+'.';
+
+    box.textContent = firstSentence+' '+secondSentence+' '+tone+climate;
+};
+
+Engine.prototype.updateNarrativeSolo=function(idx,name,vals){
+    var box=document.getElementById("narrative-box");
+    var who=this.getName(idx);
+    var dV=vals[0],dS=vals[1],dM=vals[2],dR=vals[3];
+    var line1=who+' turns inward with "'+name+'".';
+    var line2='Their inner state shifts: Energy '+dV.toFixed(1)+', Safety '+dS.toFixed(1)+', Meaning '+dM.toFixed(1)+', Authenticity '+dR.toFixed(1)+'.';
+    var line3='Even without the other moving, the emotional landscape between them changes a little in this "'+this.relationshipStatus+'" phase.';
+    box.textContent=line1+' '+line2+' '+line3;
+};
+
+Engine.prototype.updateGuidance=function(domain,name,accepted,giverIdx,receiverIdx,impactA,impactB){
+    var gBox=document.getElementById("guidance-giver");
+    var rBox=document.getElementById("guidance-receiver");
+
+    var giverName=this.getName(giverIdx);
+    var receiverName=this.getName(receiverIdx);
+
+    var sumA=impactA[0]+impactA[1]+impactA[2]+impactA[3];
+    var sumB=impactB[0]+impactB[1]+impactB[2]+impactB[3];
+
+    var giverLine, receiverLine;
+
+    if(sumA>=0){
+        giverLine=giverName+' as giver: keep using this kind of action, but stay curious about how it actually lands. Name your intention out loud and invite feedback.';
+    }else{
+        giverLine=giverName+' as giver: slow down and soften your delivery. Try shorter, clearer messages and check in with how safe '+receiverName+' feels before pushing further.';
+    }
+
+    if(sumB>=0){
+        receiverLine=receiverName+' as receiver: let yourself notice what feels good here. Say out loud what helped you feel safer or more seen so it can be repeated.';
+    }else{
+        receiverLine=receiverName+' as receiver: notice where your body tenses or shuts down. See if you can name the hurt or fear instead of only pulling away.';
+    }
+
+    if(!accepted){
+        receiverLine+=' Because this was not fully accepted, both of you might benefit from a gentle repair conversation later.';
+    }
+
+    var status=this.relationshipStatus;
+    if(status==="Surviving"||status==="Strained"||status==="Disconnected"){
+        giverLine+=' In this climate, go slower than you think and over-communicate safety.';
+        receiverLine+=' In this climate, even small bids for repair matter a lot.';
+    }else if(status==="Growing"||status==="Thriving"||status==="Deeply Connected"){
+        giverLine+=' This is a good season to build deeper rituals of connection.';
+        receiverLine+=' This is a good season to share more of your inner world.';
+    }
+
+    gBox.textContent=giverLine;
+    rBox.textContent=receiverLine;
+};
+
+Engine.prototype.updateGuidanceSolo=function(idx,name,vals){
+    var gBox=document.getElementById("guidance-giver");
+    var rBox=document.getElementById("guidance-receiver");
+    var who=this.getName(idx);
+
+    var sum=vals[0]+vals[1]+vals[2]+vals[3];
+
+    var selfLine=sum>=0
+        ? who+' as an individual: this practice seems to support you. Keep noticing which parts of you feel calmer, clearer, or more hopeful afterward.'
+        : who+' as an individual: this practice may be stirring up hard material. Consider pairing it with support (friend, therapist, or gentler practice).';
+
+    gBox.textContent=selfLine;
+    rBox.textContent='For the relationship: when one person does inner work, it can open space for more honest, slower conversations between you both.';
+};
+
+Engine.prototype.updateGiverEmphasis=function(){
+    var giverIdx=parseInt(document.getElementById("giver-select").value,10);
+    document.getElementById("p0").classList.toggle("giver-emph",giverIdx===0);
+    document.getElementById("p1").classList.toggle("giver-emph",giverIdx===1);
+};
+
+Engine.prototype.render=function(){
+    for(var i=0;i<2;i++){
+        this.drawRadar(i);
+        var p=this.people[i];
+
+        var bar=document.getElementById("attachBar"+i);
+        bar.style.width=p.attach+"%";
+        bar.style.background=p.attach<35?"#c0392b":(p.attach<65?"#f39c12":"#2ecc71");
+        document.getElementById("attachText"+i).innerText=
+            p.attach<35?"Very Wary":(p.attach<65?"Guarded":"Secure");
+
+        var coreBar=document.getElementById("coreWorthBar"+i);
+        coreBar.style.width=p.coreWorth+"%";
+        coreBar.style.background=p.coreWorth<40?"#c0392b":(p.coreWorth<70?"#f39c12":"#2ecc71");
+        document.getElementById("coreWorthText"+i).innerText="Core "+Math.round(p.coreWorth);
+
+        var fragBar=document.getElementById("fragileWorthBar"+i);
+        fragBar.style.width=p.fragileWorth+"%";
+        fragBar.style.background=p.fragileWorth<40?"#c0392b":(p.fragileWorth<70?"#f39c12":"#2ecc71");
+        document.getElementById("fragileWorthText"+i).innerText="Sens "+Math.round(p.fragileWorth);
+
+        var idealBar=document.getElementById("idealSelfBar"+i);
+        idealBar.style.width=p.idealSelf+"%";
+        idealBar.style.background="#8e44ad";
+        document.getElementById("idealSelfText"+i).innerText="Ideal "+Math.round(p.idealSelf);
+
+        var futBar=document.getElementById("futureOutlookBar"+i);
+        futBar.style.width=p.futureOutlook+"%";
+        futBar.style.background=p.futureOutlook<40?"#c0392b":(p.futureOutlook<70?"#f39c12":"#2ecc71");
+        document.getElementById("futureOutlookText"+i).innerText="Out "+Math.round(p.futureOutlook);
+
+        var regBar=document.getElementById("regBar"+i);
+        regBar.style.width=p.reg+"%";
+        regBar.style.background=p.reg<40?"#c0392b":(p.reg<70?"#f39c12":"#2ecc71");
+        document.getElementById("regText"+i).innerText="Reg "+Math.round(p.reg);
+
+        var trustBar=document.getElementById("trustBar"+i);
+        trustBar.style.width=p.trust+"%";
+        trustBar.style.background=p.trust<40?"#c0392b":(p.trust<70?"#f39c12":"#2ecc71");
+        document.getElementById("trustText"+i).innerText="Trust "+Math.round(p.trust);
+
+        var stressBar=document.getElementById("stressBar"+i);
+        stressBar.style.width=p.stress+"%";
+        stressBar.style.background=p.stress<40?"#2ecc71":(p.stress<70?"#f39c12":"#c0392b");
+        document.getElementById("stressText"+i).innerText="Stress "+Math.round(p.stress);
+
+        document.getElementById("face"+i).classList.toggle("sad",p.bat<40 || p.fragileWorth<40 || p.emotionalDebt>60);
+
+        this.updateDynamicBackground(i);
+    }
+    this.updateRelationshipBars();
+};
+
+Engine.prototype.updateRelationshipBars=function(){
+    var a=this.people[0], b=this.people[1];
+
+    var avgEnergy =(a.bat + b.bat)/2;
+    var avgSafety =(a.safe + b.safe)/2;
+    var avgMeaning=(a.mean + b.mean)/2;
+    var avgReal   =(a.real + b.real)/2;
+    var avgAttach =(a.attach + b.attach)/2;
+
+    var overall=(avgEnergy+avgSafety+avgMeaning+avgReal)/4;
+
+    function setBar(id,val){
+        var el=document.getElementById(id);
+        el.style.width=Math.max(0,Math.min(100,val))+"%";
+        var t=val/100;
+        var r=Math.round(192 + (46-192)*t);
+        var g=Math.round(57 + (204-57)*t);
+        var b=Math.round(43 + (113-43)*t);
+        el.style.background='rgb('+r+','+g+','+b+')';
+    }
+
+    setBar("relHealthBar",overall);
+    setBar("relSafetyBar",avgSafety);
+    setBar("relMeaningBar",avgMeaning);
+    setBar("relRealBar",avgReal);
+    setBar("relAttachBar",avgAttach);
+};
+
+Engine.prototype.updateDynamicBackground=function(idx){
+    var p=this.people[idx];
+    var pane=document.getElementById("p"+idx);
+
+    var health=(p.bat+p.safe+p.mean+p.real)/4;
+
+    var baseHue=idx===0?30:280;
+    var compHue=(baseHue+180)%360;
+
+    var lightness=70;
+    if(health<40) lightness=60;
+    else if(health>70) lightness=80;
+
+    var sat=35;
+    var bgColor='hsl('+compHue+','+sat+'%,'+lightness+'%)';
+
+    pane.style.background='radial-gradient(circle at top, rgba(255,255,255,0.25), transparent 55%), '+bgColor;
+
+    var rgb=this.hslToRgb(compHue/360,sat/100,lightness/100);
+    var lum=(0.2126*rgb[0]/255 + 0.7152*rgb[1]/255 + 0.0722*rgb[2]/255);
+    var textColor=lum<0.5?'#ffffff':'#000000';
+
+    pane.style.color=textColor;
+    var labels=pane.querySelectorAll('.label-sm, summary, h2, small');
+    labels.forEach(function(el){el.style.color=textColor;});
+};
+
+Engine.prototype.hslToRgb=function(h,s,l){
+    var r, g, b;
+
+    if(s === 0){
+        r = g = b = l;
+    } else {
+        var hue2rgb = function hue2rgb(p, q, t){
+            if(t < 0) t += 1;
+            if(t > 1) t -= 1;
+            if(t < 1/6) return p + (q - p) * 6 * t;
+            if(t < 1/2) return q;
+            if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+            return p;
+        };
+        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        var p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+    }
+
+    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+};
+
+Engine.prototype.drawRadar=function(pIdx,offset,isGhost){
+    var p=this.people[pIdx];
+    var off=offset||[0,0,0,0];
+    var stats=[
+        p.bat +off[0],
+        p.safe+off[1],
+        p.mean+off[2],
+        p.real+off[3]
+    ];
+    for(var i=0;i<4;i++){
+        if(stats[i]<0)stats[i]=0;
+        else if(stats[i]>100)stats[i]=100;
+    }
+
+    var ptsStr="";
+    for(var j=0;j<4;j++){
+        var ang=(Math.PI*2*j)/4 - Math.PI/2;
+        var r=(stats[j]/100*70);
+        var x=100+r*Math.cos(ang);
+        var y=100+r*Math.sin(ang);
+        ptsStr+=x+","+y+" ";
+    }
+    var id=(isGhost?"ghost":"poly")+pIdx;
+    var poly=document.getElementById(id);
+    poly.setAttribute("points",ptsStr.trim());
+
+    if(!isGhost){
+        var health=(p.bat+p.safe+p.mean+p.real)/4;
+        var t=health/100;
+        var rCol=Math.round(192 + (46-192)*t);
+        var gCol=Math.round(57 + (204-57)*t);
+        var bCol=Math.round(43 + (113-43)*t);
+        var alpha=0.15+0.25*Math.abs(t-0.5)*2;
+
+        poly.style.fill='rgba('+rCol+','+gCol+','+bCol+','+alpha+')';
+        poly.style.stroke='rgb('+rCol+','+gCol+','+bCol+')';
+    }
+};
+
+Engine.prototype.spawnPerceptionEffects=function(idx,impact){
+    var container=document.getElementById("effects"+idx);
+    if(!container)return;
+    var sum=impact[0]+impact[1]+impact[2]+impact[3];
+    var type;
+    if(sum>8) type="hearts";
+    else if(sum<0) type="broken";
+    else return;
+
+    for(var i=0;i<6;i++){
+        var span=document.createElement("span");
+        var x=50 + (Math.random()*20-10);
+        span.style.left=x+"%";
+        span.style.top="50%";
+        span.style.transform="translate(-50%,40%)";
+        span.style.animationName="riseUpFromBottom";
+
+        if(type==="hearts"){
+            span.textContent="❤";
+            span.className="effect-heart";
+            span.style.color="#e74c3c";
+        }else{
+            span.textContent="💔";
+            span.className="effect-broken";
+            span.style.color="#c0392b";
+        }
+        span.style.animationDelay=(Math.random()*0.4)+"s";
+        container.appendChild(span);
+        (function(el){
+            setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},1700);
+        })(span);
+    }
+};
+
+Engine.prototype.setRelationshipStatus=function(status){
+    var old=this.relationshipStatus || "Neutral";
+    if(status===old) return;
+
+    var oldEff=REL_STATUS_EFFECTS[old] || REL_STATUS_EFFECTS["Neutral"];
+    var newEff=REL_STATUS_EFFECTS[status] || REL_STATUS_EFFECTS["Neutral"];
+
+    var diff={
+        e:newEff.e - oldEff.e,
+        s:newEff.s - oldEff.s,
+        m:newEff.m - oldEff.m,
+        r:newEff.r - oldEff.r,
+        a:newEff.a - oldEff.a
+    };
+
+    for(var i=0;i<2;i++){
+        var p=this.people[i];
+        p.bat =Math.max(0,Math.min(100,p.bat + diff.e));
+        p.safe=Math.max(0,Math.min(100,p.safe+ diff.s));
+        p.mean=Math.max(0,Math.min(100,p.mean+ diff.m));
+        p.real=Math.max(0,Math.min(100,p.real+ diff.r));
+        p.attach=Math.max(0,Math.min(100,p.attach+ diff.a));
+    }
+
+    this.relationshipStatus=status;
+    this.refreshNarrativeAndGuidance();
+    this.render();
+};
+
+Engine.prototype.updateWhyBox=function(evt){
+    var box=document.getElementById("why-text");
+    if(!evt){
+        box.textContent="After each interaction, this will explain how attachment, diagnosis, personality, and the relationship climate shaped the impact.";
+        return;
+    }
+
+    if(evt.type==="solo"){
+        var who=this.getName(evt.personIdx);
+        box.textContent=who+" ran a solo practice. The changes came mostly from their own inner work, shaped by their diagnosis profile, attachment style, and emotion regulation skill.";
+        return;
+    }
+
+    var giverIdx=evt.giverIdx;
+    var receiverIdx=evt.receiverIdx;
+    var giverName=this.getName(giverIdx);
+    var receiverName=this.getName(receiverIdx);
+
+    var recvMods=this.getDiagModifiers(receiverIdx);
+    var giveMods=this.getDiagModifiers(giverIdx);
+    var recvAttach=this.getAttachmentProfile(receiverIdx);
+    var giveAttach=this.getAttachmentProfile(giverIdx);
+
+    var recvDiagKeys=Object.keys(this.people[receiverIdx].diags).filter(k=>this.people[receiverIdx].diags[k]>0);
+    var giverDiagKeys=Object.keys(this.people[giverIdx].diags).filter(k=>this.people[giverIdx].diags[k]>0);
+
+    var relStatus=this.relationshipStatus;
+
+    var text=giverName+"\'s move was filtered through "+receiverName+"\'s inner world. ";
+    if(recvDiagKeys.length>0){
+        text+=receiverName+" is carrying "+recvDiagKeys.join(", ")+", which amplifies how intense things feel. ";
+    }
+    if(giverDiagKeys.length>0){
+        text+=giverName+" is also influenced by "+giverDiagKeys.join(", ")+", shaping how they reach out. ";
+    }
+
+    text+="Their attachment styles adjust how quickly trust rises or falls, and the current relationship climate ("+relStatus+") tilts everything slightly more positive or negative. ";
+    text+="Emotion regulation and stress levels change how big the swings are, especially on safety and meaning.";
+
+    box.textContent=text;
+};
+
+Engine.prototype.updateSuggestions=function(){
+    var box=document.getElementById("suggest-text");
+    var a=this.people[0], b=this.people[1];
+
+    var avgSafety=(a.safe+b.safe)/2;
+    var avgAttach=(a.attach+b.attach)/2;
+    var avgMeaning=(a.mean+b.mean)/2;
+    var status=this.relationshipStatus;
+
+    var suggestions=[];
+
+    if(avgSafety<45 || avgAttach<45){
+        suggestions.push("Focus on small, consistent safety-building moves: gentle check-ins, predictable follow-through, and naming reassurance explicitly.");
+    }
+    if(a.emotionalDebt>40 || b.emotionalDebt>40){
+        suggestions.push("There is some emotional debt here. Consider a repair-focused interaction: apology, taking responsibility, and checking impact.");
+    }
+    if(avgMeaning<50){
+        suggestions.push("You might benefit from a shared meaning conversation: talk about why this relationship matters and what you want to build together.");
+    }
+    if(status==="Surviving"||status==="Strained"||status==="Disconnected"){
+        suggestions.push("Keep interactions shorter, softer, and slower. Avoid big confrontations; aim for gentle, specific bids for connection.");
+    }
+    if(status==="Growing"||status==="Thriving"||status==="Deeply Connected"){
+        suggestions.push("This is a good time to deepen rituals of connection: regular check-ins, shared activities, and naming appreciation.");
+    }
+
+    if(suggestions.length===0){
+        suggestions.push("You are in a relatively stable place. Keep noticing what works and repeat those patterns with intention.");
+    }
+
+    box.textContent=suggestions.join(" ");
+};
+
+Engine.prototype.resetAll=function(){
+    this.people=[
+        {bat:80,safe:70,mean:60,real:80,diags:{},attach:50,
+         coreWorth:70,fragileWorth:65,idealSelf:80,futureOutlook:70,volatility:5,
+         trust:65,reg:65,stress:30,emotionalDebt:0,repairCharge:0},
+        {bat:80,safe:70,mean:60,real:80,diags:{},attach:50,
+         coreWorth:70,fragileWorth:65,idealSelf:80,futureOutlook:70,volatility:5,
+         trust:65,reg:65,stress:30,emotionalDebt:0,repairCharge:0}
+    ];
+    this.relationshipStatus="Neutral";
+    document.getElementById("relStatus").value="Neutral";
+    document.getElementById("nexus-log").innerHTML="";
+    document.getElementById("indivLog0").innerHTML="";
+    document.getElementById("indivLog1").innerHTML="";
+    document.getElementById("narrative-box").textContent="Short, sentence-based reflections on what just happened will appear here.";
+    document.getElementById("why-text").textContent="After each interaction, this will explain how attachment, diagnosis, personality, and the relationship climate shaped the impact.";
+    document.getElementById("suggest-text").textContent="Suggestions for next steps will appear here based on the current state of Jack and Diane.";
+    this.lastEvent=null;
+
+    for(var idx=0;idx<2;idx++){
+        for(var d in this.people[idx].diags){
+            this.people[idx].diags[d]=0;
+        }
+        var dBox=document.getElementById("diagBox"+idx);
+        var tiles=dBox.querySelectorAll(".lvl-tile");
+        tiles.forEach(function(t){t.classList.remove("active");});
+    }
+
+    this.render();
+};
+
+Engine.prototype.saveState=function(){
+    var state={
+        people:this.people,
+        relationshipStatus:this.relationshipStatus,
+        names:[this.getName(0),this.getName(1)]
+    };
+    try{
+        localStorage.setItem("nexusState",JSON.stringify(state));
+    }catch(e){}
+};
+
+Engine.prototype.loadState=function(){
+    try{
+        var raw=localStorage.getItem("nexusState");
+        if(!raw)return;
+        var state=JSON.parse(raw);
+        if(!state.people || state.people.length!==2)return;
+        this.people=state.people;
+        this.relationshipStatus=state.relationshipStatus||"Neutral";
+        document.getElementById("relStatus").value=this.relationshipStatus;
+        document.getElementById("name0").value=state.names[0]||"Jack";
+        document.getElementById("name1").value=state.names[1]||"Diane";
+        document.getElementById("title0").textContent=this.getName(0);
+        document.getElementById("title1").textContent=this.getName(1);
+        this.updateGiverNames();
+        this.render();
+        this.refreshNarrativeAndGuidance();
+    }catch(e){}
+};
+
+function initTooltips(){
+    var tip=document.getElementById("tooltip");
+    var active=false;
+
+    function show(e){
+        var text=e.currentTarget.getAttribute("data-tip");
+        if(!text)return;
+        tip.textContent=text;
+        tip.style.opacity="1";
+        active=true;
+    }
+    function hide(){
+        tip.style.opacity="0";
+        active=false;
+    }
+    function move(e){
+        if(!active)return;
+        tip.style.left=(e.clientX+12)+"px";
+        tip.style.top=(e.clientY-12)+"px";
+    }
+
+    var els=document.querySelectorAll(".tip");
+    for(var i=0;i<els.length;i++){
+        var el=els[i];
+        el.addEventListener("mouseenter",show);
+        el.addEventListener("mouseleave",hide);
+        el.addEventListener("mousemove",move);
+    }
+}
+
+var app=new Engine();
+window.onload=function(){app.init();};
+</script>
+
+</body>
+</html>
