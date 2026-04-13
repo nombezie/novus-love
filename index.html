@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Novus Love v3</title>
+<link rel="stylesheet" href="novus.css">
+</head>
+<body>
+
+<div class="disclaimer-overlay" id="disclaimerOverlay">
+  <div class="disclaimer-box">
+    <h2>⚠️ Important Disclaimer</h2>
+    <p>This tool is an <strong>educational simulation</strong> based on published psychological research. It is <strong>not</strong> a clinical instrument, diagnostic tool, or substitute for professional therapy.</p>
+    <p>Models used: Attachment Theory, Gottman Method, Big Five, Sternberg, Rusbult, Bowen, MBTI, Enneagram. All are simplified representations.</p>
+    <p><strong>If you are experiencing relationship distress, please consult a licensed mental health professional.</strong></p>
+    <label class="disclaimer-check"><input type="checkbox" id="disclaimerCB"> I understand this is an educational simulation, not clinical advice.</label>
+    <button class="btn btn-primary" id="disclaimerBtn" disabled>Enter Novus Love v3</button>
+  </div>
+</div>
+
+<div id="globalTooltip" class="global-tooltip"></div>
+
+<div class="app-wrap" id="appWrap" style="display:none">
+<header class="app-header"><h1>❤️ Novus Love <span class="ver">v3</span></h1><p class="sub">Systemic Psychological Dynamics Engine</p></header>
+
+<div class="cols">
+
+<!-- ===== PERSON A ===== -->
+<div class="col col-side" id="colA">
+<h2 class="col-hd" id="hdA">Person A</h2>
+
+<div class="acc open" id="accCfgA"><div class="acc-hd"><span>🧬 Profile Setup</span><span class="badge"></span><span class="arrow">▼</span></div><div class="acc-bd">
+  <label>Name <input type="text" id="nameA" value="Person A" class="inp"></label>
+  <label data-tip="Myers-Briggs Type Indicator — 16 personality types based on cognitive functions.">MBTI <select id="mbtiA" class="sel"><option value="INTJ">INTJ</option><option value="INTP">INTP</option><option value="ENTJ">ENTJ</option><option value="ENTP">ENTP</option><option value="INFJ">INFJ</option><option value="INFP">INFP</option><option value="ENFJ">ENFJ</option><option value="ENFP">ENFP</option><option value="ISTJ">ISTJ</option><option value="ISFJ">ISFJ</option><option value="ESTJ">ESTJ</option><option value="ESFJ">ESFJ</option><option value="ISTP">ISTP</option><option value="ISFP">ISFP</option><option value="ESTP">ESTP</option><option value="ESFP">ESFP</option></select></label>
+  <label data-tip="Enneagram — 9 core personality types based on motivational patterns.">Enneagram <select id="enneagramA" class="sel"><option value="1">1-Reformer</option><option value="2">2-Helper</option><option value="3">3-Achiever</option><option value="4" selected>4-Individualist</option><option value="5">5-Investigator</option><option value="6">6-Loyalist</option><option value="7">7-Enthusiast</option><option value="8">8-Challenger</option><option value="9">9-Peacemaker</option></select></label>
+  <label data-tip="Attachment style — strongest single predictor of relationship quality (Bowlby/Ainsworth).">Attachment <select id="attachA" class="sel"><option value="secure">Secure</option><option value="anxious">Anxious-Preoccupied</option><option value="avoidant">Dismissive-Avoidant</option><option value="fearful">Fearful-Avoidant</option><option value="disorganized">Disorganized</option><option value="anxious-secure">Anxious-Secure Blend</option><option value="avoidant-secure">Avoidant-Secure Blend</option><option value="anxious-avoidant">Anxious-Avoidant Blend</option><option value="fearful-anxious">Fearful-Anxious Blend</option><option value="fearful-avoidant">Fearful-Avoidant Blend</option><option value="earned-secure">Earned Secure</option></select></label>
+  <label data-tip="Love Language — how partners give/receive love (Chapman).">Love Language <select id="llA" class="sel"><option value="words">Words of Affirmation</option><option value="acts">Acts of Service</option><option value="gifts">Receiving Gifts</option><option value="time" selected>Quality Time</option><option value="touch">Physical Touch</option></select></label>
+  <label data-tip="Conflict style — based on Gottman's research on relationship outcomes.">Conflict Style <select id="conflictA" class="sel"><option value="soft-startup" selected>Soft Startup</option><option value="harsh-startup">Harsh Startup</option><option value="criticism">Criticism</option><option value="contempt">Contempt</option><option value="defensiveness">Defensiveness</option><option value="stonewalling">Stonewalling</option><option value="flooding">Flooding</option><option value="repair">Repair Attempt</option></select></label>
+  <label data-tip="Current mood state — temporarily influences all interactions.">Mood <select id="moodA" class="sel"><option value="content">Content</option><option value="happy">Happy</option><option value="calm">Calm</option><option value="neutral" selected>Neutral</option><option value="anxious">Anxious</option><option value="sad">Sad</option><option value="angry">Angry</option><option value="frustrated">Frustrated</option><option value="lonely">Lonely</option><option value="overwhelmed">Overwhelmed</option><option value="numb">Numb</option><option value="fearful">Fearful</option><option value="ashamed">Ashamed</option><option value="despairing">Despairing</option></select></label>
+  <label data-tip="External support from friends, family, community. Higher = more resilient.">Support (0-100) <input type="number" id="supportA" value="50" min="0" max="100" class="inp inp-num"></label>
+</div></div>
+
+<div class="acc" id="accOceanA"><div class="acc-hd"><span>🌊 Big Five / OCEAN</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="oceanSlidersA"></div></div></div>
+
+<div class="acc" id="accMHA"><div class="acc-hd"><span>🧠 Mental Health Factors</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="mhSlidersA"></div></div></div>
+
+<div class="acc" id="accRadarA"><div class="acc-hd"><span>🔸 8-Dimension Radar</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="radarA" class="radar-wrap"></div></div></div>
+
+<div class="acc" id="accMetersA"><div class="acc-hd"><span>📊 Health Metrics</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="metersA"></div><div id="dosA" class="sub-info"></div><div id="driftA" class="sub-info"></div><div id="sentimentA" class="sub-info"></div></div></div>
+
+<div class="acc" id="accStoryA"><div class="acc-hd"><span>📖 Profile Summary</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="storyA" class="story"></div></div></div>
+
+<div class="acc" id="accPractA"><div class="acc-hd"><span>💪 Resilience Practices</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="practiceButtonsA" class="btn-grid"></div></div></div>
+
+<div class="acc" id="accToxA"><div class="acc-hd"><span>☠ Toxic Activities</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="toxicButtonsA" class="btn-grid"></div></div></div>
+
+<div class="acc" id="accLogA"><div class="acc-hd"><span>📋 Event Log</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="logA" class="log-box"></div></div></div>
+</div>
+
+<!-- ===== CENTER: RELATIONSHIP ===== -->
+<div class="col col-center" id="colCenter">
+<h2 class="col-hd">Relationship</h2>
+
+<div class="acc open" id="accRelCfg"><div class="acc-hd"><span>⚙ Relationship Config</span><span class="badge"></span><span class="arrow">▼</span></div><div class="acc-bd">
+  <label data-tip="Type affects metric weightings.">Type <select id="relType" class="sel"><option value="romantic" selected>Romantic</option><option value="friendship">Friendship</option><option value="parent-child">Parent-Child</option><option value="business">Business</option></select></label>
+  <label data-tip="Life stage modifies stress and available energy.">Life Stage <select id="lifeStage" class="sel"><option value="no-children" selected>No Children</option><option value="expecting">Expecting</option><option value="infant">Infant</option><option value="toddler">Toddler</option><option value="school-age">School Age</option><option value="teen">Teenagers</option><option value="adult-child">Adult Children</option><option value="empty-nest">Empty Nest</option></select></label>
+  <label data-tip="Financial conflict is the strongest predictor of divorce (Dew 2012).">Financial Alignment <select id="financialAlign" class="sel"><option value="5">Fully Aligned</option><option value="4">Mostly Aligned</option><option value="3" selected>Moderate</option><option value="2">Misaligned</option><option value="1">Severely Misaligned</option></select></label>
+  <label data-tip="Sets initial emotional state of the relationship.">Starting Condition <select id="startCondition" class="sel"><option value="honeymoon">Honeymoon</option><option value="stable" selected>Stable</option><option value="growing">Growing</option><option value="new-relationship">New</option><option value="strained">Strained</option><option value="disconnected">Disconnected</option><option value="crisis">Crisis</option><option value="collapsed">Collapsed</option></select></label>
+</div></div>
+
+<div class="acc open" id="accRelMeters"><div class="acc-hd"><span>💗 Relationship Metrics</span><span class="badge"></span><span class="arrow">▼</span></div><div class="acc-bd">
+  <div id="relMetersBox"></div>
+  <div id="relStatus" class="sub-info"></div>
+  <div id="sternbergBox" class="sub-info"></div>
+  <div id="rusbultBox" class="sub-info"></div>
+  <div id="psoBox" class="sub-info"></div>
+  <div id="repairBox" class="sub-info"></div>
+  <div id="conflictBox" class="sub-info"></div>
+</div></div>
+
+<div class="acc open" id="accIB"><div class="acc-hd"><span>🎭 Interaction Builder</span><span class="badge"></span><span class="arrow">▼</span></div><div class="acc-bd">
+  <label data-tip="Who initiates this interaction.">Direction <select id="ibDir" class="sel"><option value="AtoB">A → B</option><option value="BtoA">B → A</option></select></label>
+  <label data-tip="Category — ordered most positive to most negative.">Category <select id="ibCat" class="sel"><option value="">-- Select --</option></select></label>
+  <label data-tip="Specific scenario. Auto-sets default intensity.">Scenario <select id="ibScen" class="sel"><option value="">-- Select Category --</option></select></label>
+  <label data-tip="Intensity amplifies all effects.">Intensity: <span id="ibIntVal">50</span>% <input type="range" id="ibInt" min="0" max="100" step="1" value="50" class="slider"></label>
+  <div class="btn-row"><button class="btn btn-primary" id="ibGo" disabled>⚡ Process</button></div>
+  <div id="ibChain" style="display:none">
+    <hr class="sep">
+    <strong>🔄 Response Chain</strong>
+    <label>Direction <select id="ibChainDir" class="sel"><option value="AtoB">A → B</option><option value="BtoA">B → A</option></select></label>
+    <label>Category <select id="ibChainCat" class="sel"><option value="">-- Select --</option></select></label>
+    <label>Scenario <select id="ibChainScen" class="sel"><option value="">-- Select --</option></select></label>
+    <label>Intensity: <span id="ibChainIntVal">50</span>% <input type="range" id="ibChainInt" min="0" max="100" step="1" value="50" class="slider"></label>
+    <button class="btn btn-secondary" id="ibChainGo" disabled>🔄 Send Response</button>
+  </div>
+</div></div>
+
+<div class="acc" id="accNarr"><div class="acc-hd"><span>📖 Relationship Narrative</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="relNarrative" class="story"></div></div></div>
+
+<div class="acc" id="accRecs"><div class="acc-hd"><span>🩹 Recommendations</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="recommendations" class="story"></div></div></div>
+
+<div class="acc" id="accTimeline"><div class="acc-hd"><span>📈 Timeline</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="timelineBox" class="timeline-wrap"></div></div></div>
+
+<div class="acc" id="accRelLog"><div class="acc-hd"><span>📋 Relationship Log</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="relLog" class="log-box"></div></div></div>
+</div>
+
+<!-- ===== PERSON B ===== -->
+<div class="col col-side" id="colB">
+<h2 class="col-hd" id="hdB">Person B</h2>
+
+<div class="acc open" id="accCfgB"><div class="acc-hd"><span>🧬 Profile Setup</span><span class="badge"></span><span class="arrow">▼</span></div><div class="acc-bd">
+  <label>Name <input type="text" id="nameB" value="Person B" class="inp"></label>
+  <label data-tip="Myers-Briggs Type Indicator">MBTI <select id="mbtiB" class="sel"><option value="INTJ">INTJ</option><option value="INTP">INTP</option><option value="ENTJ">ENTJ</option><option value="ENTP">ENTP</option><option value="INFJ">INFJ</option><option value="INFP">INFP</option><option value="ENFJ">ENFJ</option><option value="ENFP" selected>ENFP</option><option value="ISTJ">ISTJ</option><option value="ISFJ">ISFJ</option><option value="ESTJ">ESTJ</option><option value="ESFJ">ESFJ</option><option value="ISTP">ISTP</option><option value="ISFP">ISFP</option><option value="ESTP">ESTP</option><option value="ESFP">ESFP</option></select></label>
+  <label data-tip="Enneagram">Enneagram <select id="enneagramB" class="sel"><option value="1">1-Reformer</option><option value="2" selected>2-Helper</option><option value="3">3-Achiever</option><option value="4">4-Individualist</option><option value="5">5-Investigator</option><option value="6">6-Loyalist</option><option value="7">7-Enthusiast</option><option value="8">8-Challenger</option><option value="9">9-Peacemaker</option></select></label>
+  <label data-tip="Attachment style">Attachment <select id="attachB" class="sel"><option value="secure">Secure</option><option value="anxious" selected>Anxious-Preoccupied</option><option value="avoidant">Dismissive-Avoidant</option><option value="fearful">Fearful-Avoidant</option><option value="disorganized">Disorganized</option><option value="anxious-secure">Anxious-Secure Blend</option><option value="avoidant-secure">Avoidant-Secure Blend</option><option value="anxious-avoidant">Anxious-Avoidant Blend</option><option value="fearful-anxious">Fearful-Anxious Blend</option><option value="fearful-avoidant">Fearful-Avoidant Blend</option><option value="earned-secure">Earned Secure</option></select></label>
+  <label data-tip="Love Language">Love Language <select id="llB" class="sel"><option value="words" selected>Words of Affirmation</option><option value="acts">Acts of Service</option><option value="gifts">Receiving Gifts</option><option value="time">Quality Time</option><option value="touch">Physical Touch</option></select></label>
+  <label data-tip="Conflict style">Conflict Style <select id="conflictB" class="sel"><option value="soft-startup">Soft Startup</option><option value="harsh-startup">Harsh Startup</option><option value="criticism">Criticism</option><option value="contempt">Contempt</option><option value="defensiveness">Defensiveness</option><option value="stonewalling">Stonewalling</option><option value="flooding">Flooding</option><option value="repair" selected>Repair Attempt</option></select></label>
+  <label data-tip="Current mood state">Mood <select id="moodB" class="sel"><option value="content">Content</option><option value="happy">Happy</option><option value="calm" selected>Calm</option><option value="neutral">Neutral</option><option value="anxious">Anxious</option><option value="sad">Sad</option><option value="angry">Angry</option><option value="frustrated">Frustrated</option><option value="lonely">Lonely</option><option value="overwhelmed">Overwhelmed</option><option value="numb">Numb</option><option value="fearful">Fearful</option><option value="ashamed">Ashamed</option><option value="despairing">Despairing</option></select></label>
+  <label data-tip="Support network">Support (0-100) <input type="number" id="supportB" value="50" min="0" max="100" class="inp inp-num"></label>
+</div></div>
+
+<div class="acc" id="accOceanB"><div class="acc-hd"><span>🌊 Big Five / OCEAN</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="oceanSlidersB"></div></div></div>
+
+<div class="acc" id="accMHB"><div class="acc-hd"><span>🧠 Mental Health Factors</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="mhSlidersB"></div></div></div>
+
+<div class="acc" id="accRadarB"><div class="acc-hd"><span>🔸 8-Dimension Radar</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="radarB" class="radar-wrap"></div></div></div>
+
+<div class="acc" id="accMetersB"><div class="acc-hd"><span>📊 Health Metrics</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="metersB"></div><div id="dosB" class="sub-info"></div><div id="driftB" class="sub-info"></div><div id="sentimentB" class="sub-info"></div></div></div>
+
+<div class="acc" id="accStoryB"><div class="acc-hd"><span>📖 Profile Summary</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="storyB" class="story"></div></div></div>
+
+<div class="acc" id="accPractB"><div class="acc-hd"><span>💪 Resilience Practices</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="practiceButtonsB" class="btn-grid"></div></div></div>
+
+<div class="acc" id="accToxB"><div class="acc-hd"><span>☠ Toxic Activities</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="toxicButtonsB" class="btn-grid"></div></div></div>
+
+<div class="acc" id="accLogB"><div class="acc-hd"><span>📋 Event Log</span><span class="badge"></span><span class="arrow">▶</span></div><div class="acc-bd"><div id="logB" class="log-box"></div></div></div>
+</div>
+
+</div><!-- /cols -->
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <button class="btn btn-primary" id="btnRun">▶ Run Engine</button>
+  <button class="btn" id="btnUndo">↶ Undo</button>
+  <button class="btn" id="btnSnap">📷 Snapshot</button>
+  <button class="btn" id="btnCompare">📈 Compare</button>
+  <button class="btn" id="btnSave">💾 Save</button>
+  <button class="btn" id="btnLoad">📂 Load</button>
+  <button class="btn" id="btnExport">📄 Export</button>
+  <button class="btn btn-danger" id="btnReset">🔄 Reset</button>
+  <button class="btn btn-sm" id="btnSound">🔈</button>
+</div>
+
+<!-- FLOATING BUTTONS -->
+<button class="fab fab-moment" id="fabMoment" title="Moment Simulator">⚡</button>
+<button class="fab fab-help" id="fabHelp" title="Help / Whitepaper">?</button>
+
+</div><!-- /appWrap -->
+
+<!-- MOMENT SIMULATOR MODAL -->
+<div class="modal-overlay" id="momentModal"><div class="modal-box">
+  <div class="modal-hd"><h3>⚡ Moment Simulator</h3><button class="modal-x" id="momentClose">&times;</button></div>
+  <div class="modal-bd">
+    <p class="dim">Preview interaction effects without committing.</p>
+    <label>Direction <select id="momDir" class="sel"><option value="AtoB">A → B</option><option value="BtoA">B → A</option></select></label>
+    <label>Category <select id="momCat" class="sel"><option value="">-- Select --</option></select></label>
+    <label>Scenario <select id="momScen" class="sel"><option value="">-- Select --</option></select></label>
+    <label>Intensity: <span id="momIntVal">50</span>% <input type="range" id="momInt" min="0" max="100" step="1" value="50" class="slider"></label>
+    <div class="btn-row"><button class="btn" id="momPreview" disabled>🔎 Preview</button><button class="btn btn-primary" id="momRegister" disabled>▶ Register</button></div>
+    <div id="momResult" class="preview-box" style="display:none"></div>
+  </div>
+</div></div>
+
+<!-- EVENT SUMMARY MODAL -->
+<div class="modal-overlay" id="eventModal"><div class="modal-box">
+  <div class="modal-hd"><h3>⚡ Event Summary</h3><button class="modal-x" id="eventClose">&times;</button></div>
+  <div class="modal-bd" id="eventBody"></div>
+</div></div>
+
+<!-- COMPARE MODAL -->
+<div class="modal-overlay" id="compareModal"><div class="modal-box modal-wide">
+  <div class="modal-hd"><h3>📈 Compare</h3><button class="modal-x" id="compareClose">&times;</button></div>
+  <div class="modal-bd" id="compareBody"><p>Take a snapshot first.</p></div>
+</div></div>
+
+<!-- WHITEPAPER MODAL -->
+<div class="modal-overlay" id="wpModal"><div class="modal-box modal-wide">
+  <div class="modal-hd"><h3>📖 Whitepaper</h3><button class="modal-x" id="wpClose">&times;</button></div>
+  <div class="modal-bd" id="wpBody"></div>
+</div></div>
+
+<script src="novus.js"></script>
+</body>
+</html>
